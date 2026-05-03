@@ -38,3 +38,7 @@ logging:
   level:
     org.springframework.web: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE # sql 파라미터 확인을 위함
+
+kakao:
+  client-id: \${KAKAO_CLIENT_ID:your-kakao-client-id}
+  redirect-uri: \${KAKAO_REDIRECT_URI:http://localhost:3000/kakao/callback}
