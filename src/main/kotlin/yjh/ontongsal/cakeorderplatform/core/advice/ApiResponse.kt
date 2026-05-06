@@ -15,8 +15,8 @@ data class SuccessResponse<T>(
 
 data class ErrorResponse(
     override val code: Int,
-    override val message: String,
-    val errors: List<ErrorDetail>? = null,
+    override val message: String,            // 요약(개발자용)
+    val details: List<ErrorDetail>? = null,  // 상세내역(개발자용)
     val timestamp: Instant = Instant.now(),
 ) : ApiResponse
 
