@@ -23,7 +23,7 @@ class AppExceptionHandler {
         val response = ErrorResponse(
             code = e.code,
             message = e.message ?: "Unknown error message",
-            errors = null
+            details = null
         )
 
         return ResponseEntity
@@ -55,7 +55,7 @@ class AppExceptionHandler {
                 ErrorResponse(
                     code = HttpStatus.BAD_REQUEST.value(),
                     message = HttpStatus.BAD_REQUEST.reasonPhrase,
-                    errors = errors
+                    details = errors
                 )
             )
     }
@@ -81,7 +81,7 @@ class AppExceptionHandler {
                 ErrorResponse(
                     code = HttpStatus.BAD_REQUEST.value(),
                     message = HttpStatus.BAD_REQUEST.reasonPhrase,
-                    errors = errors.toList()
+                    details = errors.toList()
                 )
             )
     }
@@ -104,7 +104,7 @@ class AppExceptionHandler {
                 ErrorResponse(
                     code = HttpStatus.BAD_REQUEST.value(),
                     message = HttpStatus.BAD_REQUEST.reasonPhrase,
-                    errors = listOf(error)
+                    details = listOf(error)
                 )
             )
     }
@@ -116,7 +116,7 @@ class AppExceptionHandler {
         val response = ErrorResponse(
             code = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             message = HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase,
-            errors = listOf(
+            details = listOf(
                 ErrorDetail(
                     field = null,
                     reason = request.getDescription(false)
