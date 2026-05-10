@@ -13,9 +13,9 @@ class UserController(
     private val kakaoLoginService: KakaoLoginService,
 ) {
     @GetMapping("/login/kakao/url")
-    fun getKakaoLoginUrl(): ResponseEntity<String> {
+    fun getKakaoLoginUrl(): ResponseEntity<OauthUrlResponse> {
         val authorizationUrl = kakaoLoginService.getAuthorizeUrl()
-        return ResponseEntity.ok(authorizationUrl)
+        return ResponseEntity.ok(OauthUrlResponse(authorizationUrl))
     }
 
     @GetMapping("/login/kakao")

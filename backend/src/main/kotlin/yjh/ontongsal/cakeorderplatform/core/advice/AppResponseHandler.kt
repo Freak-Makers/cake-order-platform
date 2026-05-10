@@ -2,10 +2,10 @@ package yjh.ontongsal.cakeorderplatform.core.advice
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.core.MethodParameter
-import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageConverter
+import org.springframework.http.converter.StringHttpMessageConverter
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
 import org.springframework.http.server.ServletServerHttpResponse
@@ -15,9 +15,7 @@ import java.io.File
 import java.io.InputStream
 
 @RestControllerAdvice
-class AppResponseHandler(
-    private val objectMapper: ObjectMapper,
-) : ResponseBodyAdvice<Any> {
+class AppResponseHandler : ResponseBodyAdvice<Any> {
 
     override fun supports(
         returnType: MethodParameter,
@@ -49,27 +47,25 @@ class AppResponseHandler(
         // 3. 특수 타입 보호 (중요)
         if (
             body is ByteArray ||
-            body is Resource ||
+            body is jakarta.annotation.Resource ||
             body is InputStream ||
             body is File
         ) {
             return body
         }
 
-        if (
-            body == null ||
-            body is String ||
-            body is Number ||
-            body is Boolean
-        ) {
-            return body
-        }
-
-        // 4. 성공 응답 wrapping
-        return SuccessResponse(
+        val wrapped = SuccessResponse(
             code = 200,
             message = status.reasonPhrase,
             data = body
         )
+
+        // 4. StringConverter 로 인한 직렬화 이슈 >>> 직접 직렬화해주기
+        if (selectedConverterType == StringHttpMessageConverter::class.java) {
+            return ObjectMapper().writeValueAsString(wrapped)
+        }
+
+        // 5. 성공 응답 wrapping
+        return wrapped
     }
 }
