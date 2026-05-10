@@ -4,7 +4,11 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "users")
-class User(
+class UserEntity(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0L,
+
     @Column(nullable = false, unique = true)
     val socialId: String,
 
@@ -20,8 +24,4 @@ class User(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val provider: SocialProvider,
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0L
 ) : BaseEntity()
