@@ -2,24 +2,23 @@ package yjh.ontongsal.cakeorderplatform.admin_api.order.presentation
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import yjh.ontongsal.cakeorderplatform.service_api.order.application.OrderService
-import yjh.ontongsal.cakeorderplatform.service_api.order.presentation.OrderResponse
+import yjh.ontongsal.cakeorderplatform.admin_api.order.application.AdminOrderService
 
 @RestController
 @RequestMapping("/api/v1/admin/orders")
 class AdminOrderController(
-    private val orderService: OrderService,
+    private val adminOrderService: AdminOrderService,
 ) {
     @GetMapping
-    fun getAllOrders(): ResponseEntity<List<OrderResponse>> {
-        return ResponseEntity.ok(orderService.getAllOrders())
+    fun getAllOrders(): ResponseEntity<List<AdminOrderResponse>> {
+        return ResponseEntity.ok(adminOrderService.getAllOrders())
     }
 
     @PostMapping("/{id}/status")
     fun updateOrderStatus(
         @PathVariable id: Long,
         @RequestBody request: OrderStatusUpdateRequest,
-    ): ResponseEntity<OrderResponse> {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, request.status))
+    ): ResponseEntity<AdminOrderResponse> {
+        return ResponseEntity.ok(adminOrderService.updateOrderStatus(id, request.status))
     }
 }

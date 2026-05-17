@@ -45,23 +45,10 @@ class OrderService(
         return orders.map { toResponse(it) }
     }
 
-    @Transactional(readOnly = true)
-    fun getAllOrders(): List<OrderResponse> {
-        return orderRepository.findAll().map { toResponse(it) }
-    }
-
-    @Transactional
-    fun updateOrderStatus(orderId: Long, status: OrderStatus): OrderResponse {
-        val order = orderRepository.findById(orderId)
-            .orElseThrow { IllegalArgumentException("Order not found") }
-        order.status = status
-        return toResponse(order)
-    }
-
     private fun toResponse(entity: OrderEntity): OrderResponse {
         val product = productRepository.findById(entity.productId).orElse(null)
         val user = userRepository.findById(entity.userId).orElse(null)
-        
+
         return OrderResponse.from(
             entity = entity,
             productName = product?.name ?: "Unknown Product",
