@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, ShoppingBag, Cake, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useAuth } from "@/context/AuthContext";
+
 const menuItems = [
   { icon: LayoutDashboard, label: "대시보드", href: "/dashboard" },
   { icon: ShoppingBag, label: "주문 관리", href: "/orders" },
@@ -14,6 +16,7 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { isLoggedIn, isLoading, logout } = useAuth();
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 border-r border-zinc-200 bg-white p-6">
@@ -46,10 +49,25 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto pt-6">
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900">
-          <LogOut size={20} />
-          로그아웃
-        </button>
+        {!isLoading && (
+          isLoggedIn ? (
+            <button 
+              onClick={logout}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+            >
+              <LogOut size={20} />
+              로그아웃
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+            >
+              <LogOut size={20} className="rotate-180" />
+              로그인
+            </Link>
+          )
+        )}
       </div>
     </aside>
   );

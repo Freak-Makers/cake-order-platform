@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import {Button} from "@/components/ui/Button";
-import {ArrowRight, Cake, CheckCircle2} from "lucide-react";
+import {ArrowRight, Cake, CheckCircle2, LogOut, LayoutDashboard} from "lucide-react";
+import {useAuth} from "@/context/AuthContext";
 
 export default function LandingPage() {
+  const { isLoggedIn, isLoading, logout } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col bg-white font-sans text-zinc-900">
       {/* Header */}
@@ -14,9 +19,29 @@ export default function LandingPage() {
             </div>
             <span className="text-xl font-bold tracking-tight">Cake Admin</span>
           </div>
-          <Link href="/login">
-            <Button variant="ghost">로그인</Button>
-          </Link>
+
+          <div className="flex items-center gap-2">
+            {!isLoading && (
+              isLoggedIn ? (
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" className="gap-2">
+                      <LayoutDashboard size={18} />
+                      대시보드
+                    </Button>
+                  </Link>
+                  <Button variant="ghost" onClick={logout} className="gap-2 text-zinc-600">
+                    <LogOut size={18} />
+                    로그아웃
+                  </Button>
+                </>
+              ) : (
+                <Link href="/login">
+                  <Button variant="ghost">로그인</Button>
+                </Link>
+              )
+            )}
+          </div>
         </div>
       </header>
 
@@ -33,12 +58,21 @@ export default function LandingPage() {
               이제 Cake Admin으로 한 곳에서 편리하게 관리하세요.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/login">
-                <Button size="lg" className="h-14 gap-2 px-8 text-base">
-                  무료로 시작하기
-                  <ArrowRight size={20}/>
-                </Button>
-              </Link>
+              {isLoggedIn ? (
+                <Link href="/dashboard">
+                  <Button size="lg" className="h-14 gap-2 px-8 text-base">
+                    대시보드로 이동
+                    <ArrowRight size={20}/>
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/login">
+                  <Button size="lg" className="h-14 gap-2 px-8 text-base">
+                    무료로 시작하기
+                    <ArrowRight size={20}/>
+                  </Button>
+                </Link>
+              )}
               <Button size="lg" variant="outline" className="h-14 px-8 text-base">
                 <Link href="/dashboard">
                   기능 살펴보기
@@ -47,6 +81,7 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
 
         {/* Features */}
         <section className="bg-zinc-50 py-24 px-6">

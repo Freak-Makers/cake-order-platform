@@ -27,3 +27,22 @@ export async function getKakaoLogin(code: string) {
     `/api/v1/users/login/kakao?${query.toString()}`
   );
 }
+
+export interface AdminLoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface AdminLoginResponse {
+  id: number;
+  nickname: string;
+  email?: string | null;
+  accessToken: string;
+}
+
+export async function loginAdmin(data: AdminLoginRequest) {
+  return apiClient.post<AdminLoginResponse, AdminLoginRequest>(
+    "/api/v1/admin/users/login",
+    data
+  );
+}

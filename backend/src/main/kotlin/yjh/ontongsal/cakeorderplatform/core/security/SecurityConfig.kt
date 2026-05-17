@@ -66,7 +66,8 @@ class SecurityConfig(
             .authorizeHttpRequests {
                 it
                     .requestMatchers("/h2-console/**").permitAll()
-                    .requestMatchers("/api/v1/users/**").permitAll()
+                    .requestMatchers("/api/v1/users/login/kakao/**").permitAll()
+                    .requestMatchers("/api/v1/admin/users/login/**").permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtSecurityContextFilter, UsernamePasswordAuthenticationFilter::class.java)
