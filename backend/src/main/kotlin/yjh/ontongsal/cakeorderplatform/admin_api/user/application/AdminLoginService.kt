@@ -11,15 +11,15 @@ class AdminLoginService(
 ) {
     fun login(email: String, password: String): AdminLoginResponse {
         val accessToken = jwtTokenProvider.generateToken(
-            userId = 999,
+            userId = 1,
             email = email,
             role = "ADMIN",
             expiredAt = Duration.ofHours(24)
         )
 
         return AdminLoginResponse(
-            id = 9999,
-            nickname = "홍길동(관리자)",
+            id = 1,
+            nickname = "사장님",
             email = email,
             accessToken = accessToken,
         )
