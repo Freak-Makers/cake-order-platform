@@ -33,4 +33,20 @@ enum class ErrorCode(
     // Todo (1400~1499)
     TODO_NOT_FOUND(1400, "할 일을 찾을 수 없습니다"),
     TODO_FORBIDDEN(1401, "해당 할 일에 대한 권한이 없습니다"),
+
+    // Reservation (1500~1599)
+    RESERVATION_NOT_FOUND(1500, "예약을 찾을 수 없습니다"),
+    RESERVATION_SLOT_NOT_FOUND(1501, "예약 가능 날짜를 찾을 수 없습니다"),
+    INVALID_RESERVATION_STATUS(1502, "현재 예약 상태에서는 진행할 수 없습니다"),
+    RESERVATION_FORBIDDEN(1503, "본인 예약만 접근 가능합니다"),
+    RESERVATION_SLOT_TAKEN(1504, "이미 예약된 슬롯입니다"),
+
+    // Payment (1600~1699)
+    PAYMENT_NOT_FOUND(1600, "결제 내역을 찾을 수 없습니다"),
+    PAYMENT_VERIFICATION_FAILED(1601, "결제 검증에 실패했습니다"),
+    PAYMENT_AMOUNT_MISMATCH(1602, "결제 금액이 일치하지 않습니다"),
+
+    // Product (1700~1799)
+    PRODUCT_NOT_FOUND(1700, "상품을 찾을 수 없습니다"),
+    PRODUCT_INVALID_CURSOR(1701, "잘못된 커서입니다"),
 }

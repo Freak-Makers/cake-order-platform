@@ -9,14 +9,21 @@ export async function fetchApi<T>(
 
   let response: Response;
 
+  // 호출자가 명시한 헤더를 우선하고, 토큰이 있으면 Authorization 자동 첨부
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string> | undefined),
+  };
+  if (typeof window !== "undefined" && !headers.Authorization) {
+    const token = localStorage.getItem("accessToken");
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
   try {
     response = await fetch(baseUrl + url, {
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
       ...options,
+      headers,
     });
 
   } catch (error) {

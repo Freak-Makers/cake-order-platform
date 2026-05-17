@@ -36,7 +36,7 @@ export default function LoginPage() {
         email: adminEmail,
         password: adminPassword,
       });
-      login(response.accessToken);
+      login(response.accessToken, response.role);
       router.push("/dashboard");
     } catch (e) {
       console.error("Admin login failed:", e);

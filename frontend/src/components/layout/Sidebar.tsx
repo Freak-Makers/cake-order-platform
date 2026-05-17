@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingBag, Cake, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Calendar, Cake, FileText, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/context/AuthContext";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "대시보드", href: "/dashboard" },
-  { icon: ShoppingBag, label: "주문 관리", href: "/orders" },
+  { icon: ShoppingBag, label: "예약 관리", href: "/admin/reservations" },
+  { icon: Calendar, label: "예약 가능 슬롯", href: "/admin/reservation-slots" },
   { icon: Cake, label: "상품 관리", href: "/products" },
+  { icon: FileText, label: "게시글 관리", href: "/admin/posts" },
   { icon: Settings, label: "설정", href: "/settings" },
 ];
 

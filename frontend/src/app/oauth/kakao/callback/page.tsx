@@ -34,8 +34,8 @@ export default function KakaoCallbackPage() {
         const accessToken = response.accessToken;
         console.log("Kakao login successful, accessToken received:", accessToken);
         
-        // Context를 통해 로그인 처리 및 토큰 저장
-        login(accessToken);
+        // Context를 통해 로그인 처리 및 토큰 저장 (카카오 유저는 role 없음)
+        login(accessToken, null);
 
         router.push("/user/products");
 

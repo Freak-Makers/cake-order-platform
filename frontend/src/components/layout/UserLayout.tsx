@@ -25,7 +25,8 @@ export function UserLayout({ children }: { children: React.ReactNode }) {
 
           <nav className="hidden items-center gap-8 md:flex">
             <Link href="/user/products" className="text-sm font-medium text-zinc-600 hover:text-pink-600">상품 목록</Link>
-            <Link href="/user/orders" className="text-sm font-medium text-zinc-600 hover:text-pink-600">내 주문</Link>
+            <Link href="/user/reservations" className="text-sm font-medium text-zinc-600 hover:text-pink-600">내 예약</Link>
+            <Link href="/posts" className="text-sm font-medium text-zinc-600 hover:text-pink-600">홍보글</Link>
           </nav>
 
           <div className="flex items-center gap-4">

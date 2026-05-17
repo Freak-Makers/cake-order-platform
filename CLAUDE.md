@@ -52,6 +52,21 @@ Claude Code(claude.ai/code)가 이 저장소에서 작업할 때 참고하는 �
 
 에러는 `core/advice/AppExceptionHandler`가 처리. `AppException.BadRequest/Unauthorized/Forbidden/NotFound/Conflict/Internal` 중 하나를 `ErrorCode`(`core/exception/ErrorCode.kt`)와 함께 던지면 됨. 에러 코드는 도메인별 100단위 (User 1000번대, Post 1100번대 등)로 새 도메인 추가 시 새 블록 할당.
 
+### 소프트 딜리트 컨벤션
+
+관리자가 영구 데이터를 "삭제" 하는 엔티티(`PostEntity`, `CommentEntity`, `ProductEntity`, `ReservationSlotEntity`)는 Hibernate `@SQLDelete` + `@SQLRestriction("deleted_at IS NULL")` 으로 소프트 딜리트. `deleteById/deleteAll*` 가 자동 UPDATE 로 변환되고, `findAll/findById/existsById` 등 모든 조회가 활성 row 만 반환. 토글 데이터(`PostLike`, `ReviewLike`) 는 hard delete 유지. unique 제약이 있는 엔티티(`ReservationSlot.startAt`)는 소프트 후 충돌을 피하기 위해 unique 를 제거하고 Service 에서 활성 row 기준 중복 검사.
+
+### 페이지네이션 컨벤션
+
+목록 엔드포인트가 페이지네이션이 필요하면 **offset 기반**으로 통일:
+- 쿼리: `?offset=0&limit=20` (0-based, `limit` 1~100 자동 보정, `offset` 은 `limit` 의 배수가 아니면 `(offset/limit)*limit` 로 자동 보정)
+- 응답: `{ items, total, offset, limit }` 4-튜플
+- 내부 구현은 Spring Data `PageRequest.of(offset / limit, limit, Sort.by(...))` 로 변환
+- 정렬은 도메인별 기본값을 고정 (예: 상품 `createdAt desc`)
+- 첫 적용 예: `GET /api/v1/admin/products`
+
+예외 — 사용자 사이트의 무한 스크롤 화면(예: `GET /api/v1/products`)은 **커서 기반**. 쿼리 `?cursor=&limit=&category=&sort=`, 응답 `{ items, nextCursor, hasNext }`. 커서는 Base64(JSON) 의 `{ sort, lastValue, lastId }` — 정렬 키별 tie-breaker `id` 포함. cursor 의 sort 와 query 의 sort 는 일치해야 함(`PRODUCT_INVALID_CURSOR 1701`). admin 콘솔은 offset 유지.
+
 ### 인증
 
 JWT 단일, 무상태. `JwtSecurityContextFilter`가 `Authorization: Bearer ...` 헤더를 파싱해 `TestingUserDetails`(`userId: Long` 포함)를 `SecurityContextHolder`에 넣음. 컨트롤러에서는 `@AuthenticationPrincipal userDetails: TestingUserDetails`로 받아서 `userDetails.userId` 사용.
@@ -83,7 +98,7 @@ App Router (`src/app/`). 주요 경로: `/admin/*`, `/user/*`, `/oauth/kakao/cal
 
 ### 상태
 
-- `AuthContext` (`src/context/AuthContext.tsx`) — JWT를 `localStorage`의 `accessToken` 키에 저장. `isLoggedIn`/`login`/`logout` 제공. **API 레이어가 토큰을 자동으로 헤더에 안 붙임** — 브라우저에서 인증 필요한 호출 추가 시 `fetch.server.ts`/`axios.server.ts`에 직접 연결해야 함.
+- `AuthContext` (`src/context/AuthContext.tsx`) — JWT를 `localStorage`의 `accessToken` 키에 저장. `isLoggedIn`/`login`/`logout` 제공. `fetch.server.ts`/`axios.server.ts` 가 매 요청마다 `localStorage.accessToken` 을 읽어 `Authorization: Bearer ...` 를 자동 첨부 (호출자가 명시한 헤더가 있으면 그 쪽 우선, 토큰 없거나 SSR 컨텍스트면 헤더 생략).
 - `CartProvider`도 `AuthProvider`와 함께 `app/layout.tsx`에서 감쌈.
 
 ### Next.js 버전 주의 (`frontend/AGENTS.md`)

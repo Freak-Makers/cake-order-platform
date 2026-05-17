@@ -37,6 +37,7 @@ export interface AdminLoginResponse {
   id: number;
   nickname: string;
   email?: string | null;
+  role: string;
   accessToken: string;
 }
 

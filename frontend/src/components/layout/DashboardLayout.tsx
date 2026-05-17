@@ -1,10 +1,27 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, isLoading, logout } = useAuth();
+  const { isLoggedIn, isLoading, role, logout } = useAuth();
+  const router = useRouter();
+
+  const isAdmin = isLoggedIn && role === "ADMIN";
+
+  // ADMIN 이 아니면 로그인 페이지로 (백엔드 1차 차단의 UX 보조)
+  useEffect(() => {
+    if (!isLoading && !isAdmin) {
+      router.replace("/login");
+    }
+  }, [isLoading, isAdmin, router]);
+
+  if (isLoading || !isAdmin) {
+    return <div className="min-h-screen bg-zinc-50" />;
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -14,15 +31,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium text-zinc-500">사장님 환영합니다!</h2>
             <div className="flex items-center gap-4">
-              {!isLoading && isLoggedIn && (
-                <button
-                  onClick={logout}
-                  className="flex items-center gap-2 text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
-                >
-                  <LogOut size={18} />
-                  로그아웃
-                </button>
-              )}
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+              >
+                <LogOut size={18} />
+                로그아웃
+              </button>
               <div className="h-8 w-8 rounded-full bg-zinc-200" />
             </div>
           </div>
