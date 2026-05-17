@@ -6,7 +6,8 @@ enum class ErrorCode(
 ) {
     // User (1000~1099)
     USER_NOT_FOUND(1000, "사용자를 찾을 수 없습니다"),
-    USER_CONFLICT(1001, "사용자 충돌 발생"),
+    USER_CONFLICT(1001, "사용자가 이미 존재합니다."),
+    INVALID_PASSWORD(1002, "비밀번호가 올바르지 않습니다."),
 
     // Post (1100~1199)
     ARTICLE_NOT_FOUND(1100, "게시글을 찾을 수 없습니다"),
@@ -27,5 +28,9 @@ enum class ErrorCode(
     BOARD_CONFLICT(1301, "게시판 충돌 발생"),
     BOARD_DELETED(1302, "삭제된 게시판입니다."),
     BOARD_MODIFY_FORBIDDEN(1303, "관리자가 아니면 게시판을 수정할 수 없습니다."),
-    BOARD_DELETE_FORBIDDEN(1304, "관리자가 아니면 게시판을 삭제할 수 없습니다.")
+    BOARD_DELETE_FORBIDDEN(1304, "관리자가 아니면 게시판을 삭제할 수 없습니다."),
+
+    // Todo (1400~1499)
+    TODO_NOT_FOUND(1400, "할 일을 찾을 수 없습니다"),
+    TODO_FORBIDDEN(1401, "해당 할 일에 대한 권한이 없습니다"),
 }

@@ -11,6 +11,10 @@ import org.springframework.web.client.body
 class KakaoClient(
     @Value("\${kakao.client-id}")
     private val clientId: String,
+
+    @Value("\${kakao.client-secret}")
+    private val clientSecret: String,
+
     @Value("\${kakao.redirect-uri}")
     private val redirectUri: String,
 
@@ -23,6 +27,7 @@ class KakaoClient(
             add("client_id", clientId)
             add("redirect_uri", redirectUri)
             add("code", code)
+            add("client_secret", clientSecret)
         }
 
         return kakaoAuthClient.post()

@@ -12,6 +12,9 @@ sealed class AppException(
     class Unauthorized(errorCode: ErrorCode, customMessage: String? = null) :
         AppException(errorCode.code, 401, customMessage ?: errorCode.message)
 
+    class Forbidden(errorCode: ErrorCode, customMessage: String? = null) :
+        AppException(errorCode.code, 403, customMessage ?: errorCode.message)
+
     class NotFound(errorCode: ErrorCode, customMessage: String? = null) :
         AppException(errorCode.code, 404, customMessage ?: errorCode.message)
 

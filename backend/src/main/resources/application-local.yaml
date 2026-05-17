@@ -24,7 +24,7 @@ spring:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true
@@ -39,6 +39,16 @@ logging:
     org.springframework.web: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE # sql 파라미터 확인을 위함
 
+jwt:
+  issuer: cake-order-platform-server
+  secret_key: ZmFrZS1zZWNyZXQta2V5LWZvci1kZW1vLXVzZS0xMjM0NTY3ODkwMTIz # 최소 32바이트 이상, Base64 인코딩값을 추천한다.
+
+crypto:
+  encrypt:
+    password: test-password
+    salt: 5c0744940b5c369b
+
 kakao:
-  client-id: ${KAKAO_CLIENT_ID:your-kakao-client-id}
-  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:3000/kakao/callback}
+  client-id: ${KAKAO_CLIENT_ID}
+  client-secret: ${KAKAO_CLIENT_SECRET}
+  redirect-uri: ${KAKAO_REDIRECT_URI}

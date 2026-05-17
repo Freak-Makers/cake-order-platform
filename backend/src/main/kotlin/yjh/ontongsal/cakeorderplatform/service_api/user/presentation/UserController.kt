@@ -13,14 +13,14 @@ class UserController(
     private val kakaoLoginService: KakaoLoginService,
 ) {
     @GetMapping("/login/kakao/url")
-    fun getKakaoLoginUrl(): ResponseEntity<String> {
-        val authorizationUrl = kakaoLoginService.getAuthorizeUrl()
-        return ResponseEntity.ok(authorizationUrl)
+    fun getKakaoLoginUrl(): ResponseEntity<OauthUrlResponse> {
+        val response = kakaoLoginService.getAuthorizeUrl()
+        return ResponseEntity.ok(response)
     }
 
     @GetMapping("/login/kakao")
     fun login(@RequestParam code: String): ResponseEntity<UserResponse> {
-        val user = kakaoLoginService.login(code)
-        return ResponseEntity.ok(UserResponse.from(user))
+        val response = kakaoLoginService.login(code)
+        return ResponseEntity.ok(response)
     }
 }
