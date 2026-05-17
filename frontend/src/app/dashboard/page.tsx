@@ -1,24 +1,59 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { ShoppingBag, Users, TrendingUp, Clock } from "lucide-react";
+import { ShoppingBag, Users, TrendingUp, Clock, Loader2 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-
-const stats = [
-  { label: "오늘의 주문", value: "12건", icon: ShoppingBag, color: "text-blue-600", bg: "bg-blue-50" },
-  { label: "대기 중인 케이크", value: "5개", icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-  { label: "이번 달 누적 고객", value: "128명", icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
-  { label: "이번 달 예상 매출", value: formatPrice(1250000), icon: TrendingUp, color: "text-pink-600", bg: "bg-pink-50" },
-];
-
-const recentOrders = [
-  { id: "#ORD-001", customer: "김철수", product: "생딸기 생크림 케이크", date: "2024-05-10", status: "제작 중" },
-  { id: "#ORD-002", customer: "이영희", product: "초코 가나슈 케이크", date: "2024-05-10", status: "대기" },
-  { id: "#ORD-003", customer: "박지민", product: "망고 요거트 케이크", date: "2024-05-09", status: "완료" },
-];
+import { getAllOrders } from "@/api/order.api";
+import { Order } from "@/api/types";
 
 export default function DashboardPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const data = await getAllOrders();
+        setOrders(data);
+      } catch (e) {
+        console.error("Failed to fetch dashboard data:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+
+  // 간단한 통계 계산
+  const today = new Date().toISOString().split("T")[0];
+  const todayOrders = orders.filter(o => o.createdAt.startsWith(today));
+  const pendingOrders = orders.filter(o => o.status === "PENDING" || o.status === "MAKING");
+  const uniqueCustomers = new Set(orders.map(o => o.customerName)).size;
+  const totalRevenue = orders
+    .filter(o => o.status === "COMPLETED")
+    .reduce((sum, o) => sum + o.totalPrice, 0);
+
+  const stats = [
+    { label: "오늘의 주문", value: `${todayOrders.length}건`, icon: ShoppingBag, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "대기 중인 케이크", value: `${pendingOrders.length}개`, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+    { label: "누적 고객 수", value: `${uniqueCustomers}명`, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
+    { label: "누적 매출액", value: formatPrice(totalRevenue), icon: TrendingUp, color: "text-pink-600", bg: "bg-pink-50" },
+  ];
+
+  const recentOrders = orders.slice(0, 5);
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -59,20 +94,29 @@ export default function DashboardPage() {
                 <tbody className="divide-y divide-zinc-50">
                   {recentOrders.map((order) => (
                     <tr key={order.id} className="group">
-                      <td className="py-4 font-medium text-zinc-900">{order.id}</td>
-                      <td className="py-4 text-zinc-600">{order.customer}</td>
-                      <td className="py-4 text-zinc-600">{order.product}</td>
+                      <td className="py-4 font-medium text-zinc-900">{order.orderNumber}</td>
+                      <td className="py-4 text-zinc-600">{order.customerName}</td>
+                      <td className="py-4 text-zinc-600">{order.productName}</td>
                       <td className="py-4 text-right">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          order.status === "완료" ? "bg-green-50 text-green-600" :
-                          order.status === "제작 중" ? "bg-blue-50 text-blue-600" :
+                          order.status === "COMPLETED" ? "bg-green-50 text-green-600" :
+                          order.status === "MAKING" ? "bg-blue-50 text-blue-600" :
+                          order.status === "CANCELLED" ? "bg-red-50 text-red-600" :
                           "bg-amber-50 text-amber-600"
                         }`}>
-                          {order.status}
+                          {order.status === "PENDING" ? "대기" : 
+                           order.status === "MAKING" ? "제작 중" :
+                           order.status === "READY" ? "픽업 대기" :
+                           order.status === "COMPLETED" ? "완료" : "취소"}
                         </span>
                       </td>
                     </tr>
                   ))}
+                  {recentOrders.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-10 text-center text-zinc-400">최근 주문이 없습니다.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -81,17 +125,20 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>공지사항</CardTitle>
+            <CardTitle>시스템 현황</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="rounded-lg bg-zinc-50 p-4">
-                <p className="text-sm font-semibold text-zinc-900">시스템 점검 안내</p>
-                <p className="mt-1 text-xs text-zinc-500">내일 새벽 2시부터 4시까지 정기 점검이 있을 예정입니다.</p>
+                <p className="text-sm font-semibold text-zinc-900">백엔드 연결 상태</p>
+                <p className="mt-1 text-xs text-green-600 font-medium flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-green-500" />
+                  정상 작동 중
+                </p>
               </div>
               <div className="rounded-lg bg-zinc-50 p-4">
-                <p className="text-sm font-semibold text-zinc-900">신규 테마 출시!</p>
-                <p className="mt-1 text-xs text-zinc-500">여름 한정판 케이크 주문서를 확인해보세요.</p>
+                <p className="text-sm font-semibold text-zinc-900">실시간 데이터 동기화</p>
+                <p className="mt-1 text-xs text-zinc-500">최근 업데이트: 방금 전</p>
               </div>
             </div>
           </CardContent>

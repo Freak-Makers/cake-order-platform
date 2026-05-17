@@ -6,11 +6,14 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ShoppingCart, Heart, Loader2 } from "lucide-react";
 import { getProducts } from "@/api/product.api";
+import { createOrder } from "@/api/order.api";
 import { Product } from "@/api/types";
+import { useRouter } from "next/navigation";
 
 export default function UserProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -26,6 +29,30 @@ export default function UserProductsPage() {
 
     fetchProducts();
   }, []);
+
+  const handleOrder = async (product: Product) => {
+    const pickupDateTime = prompt("픽업 날짜와 시간을 입력해주세요 (예: 2024-05-20 14:30)");
+    if (!pickupDateTime) return;
+
+    const requirements = prompt("요청 사항이 있으시면 입력해주세요 (예: 레터링 문구)");
+
+    try {
+      setIsLoading(true);
+      await createOrder({
+        productId: product.id,
+        quantity: 1,
+        pickupDateTime: new Date(pickupDateTime).toISOString(),
+        requirements: requirements || undefined,
+      });
+      alert("주문이 완료되었습니다!");
+      router.push("/user/orders");
+    } catch (e) {
+      console.error("Order failed:", e);
+      alert("주문에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <UserLayout>
@@ -74,6 +101,7 @@ export default function UserProductsPage() {
                   <Button 
                     disabled={product.status === "SOLD_OUT"}
                     className="gap-2 bg-pink-500 hover:bg-pink-600"
+                    onClick={() => handleOrder(product)}
                   >
                     <ShoppingCart size={18} />
                     주문하기
