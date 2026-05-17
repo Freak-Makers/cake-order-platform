@@ -66,6 +66,8 @@ class SecurityConfig(
             .authorizeHttpRequests {
                 it
                     .requestMatchers("/h2-console/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/products").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/products/*/reviews").permitAll()
                     .requestMatchers("/api/v1/users/login/kakao/**").permitAll()
                     .requestMatchers("/api/v1/admin/users/login/**").permitAll()
                     .anyRequest().authenticated()
