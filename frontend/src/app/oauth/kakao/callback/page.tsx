@@ -37,7 +37,7 @@ export default function KakaoCallbackPage() {
         // Context를 통해 로그인 처리 및 토큰 저장
         login(accessToken);
 
-        router.push("/");
+        router.push("/user/products");
 
       } catch (e) {
         console.error("Kakao login backend API error:", e);
