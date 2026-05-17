@@ -52,7 +52,7 @@
 - **Method**: `GET`
 - **URL**: `/api/v1/users/login/kakao`
 - **Query Parameters**:
-    - `code`: 카카오 인가 코드 (필수)
+  - `code`: 카카오 인가 코드 (필수)
 - **Response Data**:
   ```json
   {
@@ -89,7 +89,7 @@
     }
   ]
   ```
-    - **Product Status**: `AVAILABLE`, `SOLD_OUT`, `HIDDEN`
+  - **Product Status**: `AVAILABLE`, `SOLD_OUT`, `HIDDEN`
 
 ### 3.2 상품 등록 (관리자)
 새로운 케이크 상품을 등록합니다.
@@ -159,7 +159,7 @@
     }
   ]
   ```
-    - **Order Status**: `PENDING`, `MAKING`, `READY`, `COMPLETED`, `CANCELLED`
+  - **Order Status**: `PENDING`, `MAKING`, `READY`, `COMPLETED`, `CANCELLED`
 
 ### 4.3 전체 주문 내역 조회 (관리자)
 관리자가 모든 고객의 주문 내역을 확인합니다.
@@ -182,3 +182,52 @@
   }
   ```
 - **Response Data**: 업데이트된 주문 객체 반환
+
+---
+
+## 5. 후기 관련 API (Review)
+
+### 5.1 상품별 후기 목록 조회
+특정 상품에 등록된 후기 목록을 조회합니다.
+
+- **Method**: `GET`
+- **URL**: `/api/v1/products/{productId}/reviews`
+- **Response Data**:
+  ```json
+  [
+    {
+      "id": 1,
+      "productId": 1,
+      "authorName": "홍길동",
+      "authorProfileImageUrl": "https://...",
+      "content": "정말 맛있어요! 디자인도 예쁩니다.",
+      "rating": 5,
+      "likeCount": 12,
+      "isLiked": false,
+      "createdAt": "2024-05-17T15:00:00Z"
+    }
+  ]
+  ```
+
+### 5.2 후기 등록
+상품에 대한 후기를 작성합니다.
+
+- **Method**: `POST`
+- **URL**: `/api/v1/products/{productId}/reviews`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Request Body**:
+  ```json
+  {
+    "content": "최고의 케이크입니다!",
+    "rating": 5
+  }
+  ```
+- **Response Data**: 생성된 후기 객체 반환
+
+### 5.3 후기 좋아요 토글
+후기에 좋아요를 누르거나 취소합니다.
+
+- **Method**: `POST`
+- **URL**: `/api/v1/reviews/{id}/like`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Response Data**: 비어있음
