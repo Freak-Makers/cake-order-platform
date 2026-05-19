@@ -88,6 +88,8 @@ export interface Payment {
   paidAt?: string | null;
   paymentKey?: string | null;
   orderId?: string | null;
+  failureCode?: string | null;
+  failureMessage?: string | null;
   createdAt: string;
 }
 

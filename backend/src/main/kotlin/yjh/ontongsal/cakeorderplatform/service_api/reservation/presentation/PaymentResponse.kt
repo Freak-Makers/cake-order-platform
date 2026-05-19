@@ -12,6 +12,8 @@ data class PaymentResponse(
     val paidAt: LocalDateTime?,
     val paymentKey: String?,
     val orderId: String?,
+    val failureCode: String?,
+    val failureMessage: String?,
     val createdAt: LocalDateTime,
 ) {
     companion object {
@@ -23,6 +25,8 @@ data class PaymentResponse(
             paidAt = entity.paidAt,
             paymentKey = entity.paymentKey,
             orderId = entity.orderId,
+            failureCode = entity.failureCode,
+            failureMessage = entity.failureMessage,
             createdAt = entity.createdAt,
         )
     }

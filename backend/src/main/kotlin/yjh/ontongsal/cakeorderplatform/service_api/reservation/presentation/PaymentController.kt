@@ -34,10 +34,26 @@ class PaymentController(
         )
     }
 
+    @PostMapping("/fail")
+    fun failPayment(
+        @AuthenticationPrincipal userDetails: TestingUserDetails,
+        @RequestBody request: PaymentFailRequest,
+    ): ResponseEntity<PaymentResponse> {
+        return ResponseEntity.ok(paymentService.failPayment(userDetails.userId, request))
+    }
+
     @GetMapping("/my")
     fun getMyPayments(
         @AuthenticationPrincipal userDetails: TestingUserDetails,
     ): ResponseEntity<List<PaymentResponse>> {
         return ResponseEntity.ok(paymentService.getMyPayments(userDetails.userId))
+    }
+
+    @GetMapping("/by-reservation/{reservationId}")
+    fun getPaymentByReservation(
+        @AuthenticationPrincipal userDetails: TestingUserDetails,
+        @PathVariable reservationId: Long,
+    ): ResponseEntity<PaymentResponse?> {
+        return ResponseEntity.ok(paymentService.getPaymentByReservation(userDetails.userId, reservationId))
     }
 }

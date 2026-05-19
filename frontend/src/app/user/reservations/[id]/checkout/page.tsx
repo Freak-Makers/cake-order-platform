@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CreditCard, XCircle } from "lucide-react";
+import {
+  loadTossPayments,
+  type TossPaymentsWidgets,
+} from "@tosspayments/tosspayments-sdk";
+import { CreditCard } from "lucide-react";
 import { UserLayout } from "@/components/layout/UserLayout";
 import { Button } from "@/components/ui/Button";
 import { preparePayment } from "@/api/payment.api";
@@ -16,12 +20,16 @@ export default function CheckoutPage() {
 
   const [prepare, setPrepare] = useState<PaymentPrepareResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const initialized = useRef(false);
+  const [widgetReady, setWidgetReady] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
+
+  const prepareInitialized = useRef(false);
+  const widgetsInitialized = useRef(false);
+  const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
 
   useEffect(() => {
-    if (initialized.current || !reservationId) return;
-    initialized.current = true;
+    if (prepareInitialized.current || !reservationId) return;
+    prepareInitialized.current = true;
     preparePayment(reservationId)
       .then(setPrepare)
       .catch((e) => {
@@ -30,39 +38,61 @@ export default function CheckoutPage() {
       });
   }, [reservationId]);
 
-  const handleSuccess = () => {
-    if (!prepare) return;
-    setIsSubmitting(true);
-    const mockPaymentKey = `mock_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    const qs = new URLSearchParams({
-      paymentKey: mockPaymentKey,
-      orderId: prepare.orderId,
-      amount: String(prepare.amount),
-    });
-    router.push(`/user/reservations/checkout/success?${qs.toString()}`);
-  };
+  useEffect(() => {
+    if (!prepare || widgetsInitialized.current) return;
+    widgetsInitialized.current = true;
 
-  const handleFail = () => {
-    if (!prepare) return;
-    setIsSubmitting(true);
-    const qs = new URLSearchParams({
-      code: "MOCK_USER_CANCELLED",
-      message: "사용자가 결제를 취소했습니다 (시뮬레이션)",
-      orderId: prepare.orderId,
-    });
-    router.push(`/user/reservations/checkout/fail?${qs.toString()}`);
+    (async () => {
+      try {
+        const tossPayments = await loadTossPayments(prepare.clientKey);
+        const widgets = tossPayments.widgets({ customerKey: prepare.customerKey });
+        await widgets.setAmount({ currency: "KRW", value: prepare.amount });
+        // Toss 공식 예제는 순차 await — 병렬(Promise.all)은 SDK 내부 상태 경쟁으로 실패할 수 있음.
+        await widgets.renderPaymentMethods({
+          selector: "#payment-method",
+          variantKey: "DEFAULT",
+        });
+        // variantKey 미지정 → SDK 기본값 사용. 테스트 머천트에 커스텀 약관 variant 가 없을 수 있어서 안전한 기본값.
+        await widgets.renderAgreement({
+          selector: "#agreement",
+        });
+        widgetsRef.current = widgets;
+        setWidgetReady(true);
+      } catch (e) {
+        console.error("Failed to render Toss widgets:", e);
+        const err = e as { code?: string; name?: string; message?: string };
+        const tag = err.code ?? err.name ?? "Unknown";
+        const msg = err.message ?? "";
+        setError(`결제 위젯을 불러오지 못했습니다. (${tag}: ${msg})`);
+      }
+    })();
+  }, [prepare]);
+
+  const handlePay = async () => {
+    if (!prepare || !widgetsRef.current || isRequesting) return;
+    setIsRequesting(true);
+    try {
+      // Redirect 방식: 성공 시 successUrl 로 이동, 실패 시 failUrl 로 이동. 정상 흐름에서는 이 줄 이후가 실행되지 않음.
+      await widgetsRef.current.requestPayment({
+        orderId: prepare.orderId,
+        orderName: prepare.orderName,
+        customerName: prepare.customerName,
+        successUrl: prepare.successUrl,
+        failUrl: prepare.failUrl,
+      });
+    } catch (e) {
+      console.error("requestPayment failed:", e);
+      setIsRequesting(false);
+    }
   };
 
   return (
     <UserLayout>
       <div className="mx-auto max-w-2xl space-y-6">
         <div>
-          <span className="inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-            Toss 모의 결제 (시뮬레이션)
-          </span>
-          <h1 className="mt-2 text-2xl font-bold text-zinc-900">결제하기</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">결제하기</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            실제 토스 결제 위젯이 연결되지 않은 상태입니다. 아래 버튼으로 결제 성공/실패 흐름을 테스트할 수 있습니다.
+            토스페이먼츠 결제위젯에서 결제수단을 선택하고 결제를 진행하세요.
           </p>
         </div>
 
@@ -83,31 +113,30 @@ export default function CheckoutPage() {
           <p className="text-zinc-500">결제 정보를 불러오는 중...</p>
         )}
 
+        {prepare && !widgetReady && !error && (
+          <p className="text-sm text-zinc-500">결제 위젯을 불러오는 중...</p>
+        )}
+
+        {/* Toss 결제수단/약관 위젯 마운트 포인트. prepare 가 준비되기 전엔 비어있다가 SDK 가 채워 넣음. */}
+        <div id="payment-method" className="min-h-[200px]" />
+        <div id="agreement" />
+
         <div className="flex gap-3">
           <Button
             variant="outline"
             onClick={() => router.push("/user/reservations")}
             className="flex-1"
-            disabled={isSubmitting}
+            disabled={isRequesting}
           >
             취소
           </Button>
           <Button
-            variant="outline"
-            onClick={handleFail}
-            disabled={!prepare || isSubmitting}
-            className="flex-1 gap-2 border-red-200 text-red-600 hover:bg-red-50"
-          >
-            <XCircle size={16} />
-            결제 실패
-          </Button>
-          <Button
-            onClick={handleSuccess}
-            disabled={!prepare || isSubmitting}
+            onClick={handlePay}
+            disabled={!widgetReady || isRequesting}
             className="flex-[2] gap-2 bg-pink-500 hover:bg-pink-600"
           >
             <CreditCard size={16} />
-            결제 성공
+            {isRequesting ? "결제창 이동 중..." : "결제하기"}
           </Button>
         </div>
       </div>

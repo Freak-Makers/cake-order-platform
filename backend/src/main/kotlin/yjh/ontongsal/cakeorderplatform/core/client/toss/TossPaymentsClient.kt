@@ -33,10 +33,12 @@ class TossPaymentsClient(
                 .body<TossPaymentResponse>()
                 ?: throw AppException.Internal(ErrorCode.PAYMENT_VERIFICATION_FAILED, "토스 응답이 비어있습니다")
         } catch (e: RestClientResponseException) {
-            log.warn { "Toss confirm failed: status=${e.statusCode}, body=${e.responseBodyAsString}" }
+            val body = e.responseBodyAsString
+            log.warn { "Toss confirm failed: status=${e.statusCode}, body=$body" }
+            // 토스 응답 바디(code/message)를 그대로 메시지에 실어 프론트에서 원인 파악이 즉시 가능하도록 함.
             throw AppException.BadRequest(
                 ErrorCode.PAYMENT_VERIFICATION_FAILED,
-                "토스 결제 승인 실패: ${e.statusCode}"
+                "토스 결제 승인 실패 (${e.statusCode}): $body"
             )
         }
     }

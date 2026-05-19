@@ -31,7 +31,10 @@ export default function CheckoutSuccessPage() {
       .then(() => setState("done"))
       .catch((e) => {
         console.error("Confirm failed:", e);
-        setErrorMessage("결제 승인 중 오류가 발생했습니다.");
+        // 백엔드 ErrorResponse: { code, message } — message 에 토스 응답까지 들어있음.
+        const err = e as { code?: number | string; message?: string };
+        const detail = err?.message ?? "결제 승인 중 오류가 발생했습니다.";
+        setErrorMessage(`[${err?.code ?? "ERR"}] ${detail}`);
         setState("error");
       });
   }, [searchParams]);

@@ -13,6 +13,7 @@ import yjh.ontongsal.cakeorderplatform.core.persistence.repository.PaymentReposi
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ProductRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ReservationRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.UserRepository
+import yjh.ontongsal.cakeorderplatform.service_api.reservation.presentation.PaymentFailRequest
 import yjh.ontongsal.cakeorderplatform.service_api.reservation.presentation.PaymentPrepareResponse
 import yjh.ontongsal.cakeorderplatform.service_api.reservation.presentation.PaymentResponse
 import java.time.LocalDateTime
@@ -48,7 +49,7 @@ class PaymentService(
                 "확정된 예약만 결제할 수 있습니다 (현재 상태: ${reservation.status})"
             )
         }
-        paymentRepository.findByReservationId(reservationId).ifPresent {
+        if (paymentRepository.existsByReservationIdAndStatus(reservationId, PaymentStatus.PAID)) {
             throw AppException.Conflict(ErrorCode.INVALID_RESERVATION_STATUS, "이미 결제된 예약입니다")
         }
 
@@ -65,7 +66,8 @@ class PaymentService(
             orderName = orderName,
             customerName = user?.nickname ?: "고객",
             successUrl = successUrl,
-            failUrl = failUrl,
+            // 실패 페이지가 어느 예약 건인지 식별할 수 있도록 reservationId 부착. 토스가 code/message/orderId 를 추가로 붙임.
+            failUrl = appendReservationIdQuery(failUrl, reservation.id),
         )
     }
 
@@ -87,7 +89,7 @@ class PaymentService(
         if (reservation.totalPrice != amount) {
             throw AppException.BadRequest(ErrorCode.PAYMENT_AMOUNT_MISMATCH)
         }
-        paymentRepository.findByReservationId(reservation.id).ifPresent {
+        if (paymentRepository.existsByReservationIdAndStatus(reservation.id, PaymentStatus.PAID)) {
             throw AppException.Conflict(ErrorCode.INVALID_RESERVATION_STATUS, "이미 결제된 예약입니다")
         }
 
@@ -117,9 +119,57 @@ class PaymentService(
         return PaymentResponse.from(payment)
     }
 
+    @Transactional
+    fun failPayment(userId: Long, request: PaymentFailRequest): PaymentResponse {
+        val reservation = reservationRepository.findById(request.reservationId)
+            .orElseThrow { AppException.NotFound(ErrorCode.RESERVATION_NOT_FOUND) }
+
+        if (reservation.userId != userId) {
+            throw AppException.Forbidden(ErrorCode.RESERVATION_FORBIDDEN)
+        }
+        if (paymentRepository.existsByReservationIdAndStatus(reservation.id, PaymentStatus.PAID)) {
+            throw AppException.BadRequest(
+                ErrorCode.INVALID_RESERVATION_STATUS,
+                "이미 결제 완료된 예약에는 실패 기록을 남길 수 없습니다"
+            )
+        }
+
+        val payment = paymentRepository.save(
+            PaymentEntity(
+                reservationId = reservation.id,
+                userId = userId,
+                amount = reservation.totalPrice,
+                status = PaymentStatus.FAILED,
+                paidAt = null,
+                paymentKey = request.paymentKey,
+                orderId = request.orderId,
+                failureCode = request.code,
+                failureMessage = request.message.take(510),
+            )
+        )
+        return PaymentResponse.from(payment)
+    }
+
     @Transactional(readOnly = true)
     fun getMyPayments(userId: Long): List<PaymentResponse> {
         return paymentRepository.findAllByUserIdOrderByCreatedAtDesc(userId)
             .map { PaymentResponse.from(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun getPaymentByReservation(userId: Long, reservationId: Long): PaymentResponse? {
+        val reservation = reservationRepository.findById(reservationId)
+            .orElseThrow { AppException.NotFound(ErrorCode.RESERVATION_NOT_FOUND) }
+
+        if (reservation.userId != userId) {
+            throw AppException.Forbidden(ErrorCode.RESERVATION_FORBIDDEN)
+        }
+        return paymentRepository.findFirstByReservationIdOrderByCreatedAtDesc(reservationId)
+            ?.let { PaymentResponse.from(it) }
+    }
+
+    private fun appendReservationIdQuery(url: String, reservationId: Long): String {
+        val separator = if (url.contains("?")) "&" else "?"
+        return "$url${separator}reservationId=$reservationId"
     }
 }

@@ -2,9 +2,14 @@ package yjh.ontongsal.cakeorderplatform.core.persistence.repository
 
 import org.springframework.data.jpa.repository.JpaRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.PaymentEntity
-import java.util.*
+import yjh.ontongsal.cakeorderplatform.core.persistence.entity.PaymentStatus
 
 interface PaymentRepository : JpaRepository<PaymentEntity, Long> {
     fun findAllByUserIdOrderByCreatedAtDesc(userId: Long): List<PaymentEntity>
-    fun findByReservationId(reservationId: Long): Optional<PaymentEntity>
+
+    // 한 예약에 여러 시도(FAILED N건 + PAID 1건)가 누적될 수 있으므로 가장 최근 row 반환.
+    fun findFirstByReservationIdOrderByCreatedAtDesc(reservationId: Long): PaymentEntity?
+
+    // prepare/confirm 에서 PAID row 가 이미 있는지(=재결제 차단 조건)만 검사.
+    fun existsByReservationIdAndStatus(reservationId: Long, status: PaymentStatus): Boolean
 }

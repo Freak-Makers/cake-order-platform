@@ -10,7 +10,7 @@ class PaymentEntity(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     val reservationId: Long,
 
     @Column(nullable = false)
@@ -31,4 +31,10 @@ class PaymentEntity(
 
     @Column
     var orderId: String? = null,
+
+    @Column
+    var failureCode: String? = null,
+
+    @Column(length = 510)
+    var failureMessage: String? = null,
 ) : BaseEntity()
