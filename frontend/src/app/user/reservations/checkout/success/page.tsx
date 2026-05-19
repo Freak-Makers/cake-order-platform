@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserLayout } from "@/components/layout/UserLayout";
-import { Button } from "@/components/ui/Button";
 import { confirmPayment } from "@/api/payment.api";
+
+// 결제 성공 후 reservations 로 자동 이동까지 잠깐 노출하는 시간(ms).
+const REDIRECT_DELAY_MS = 1500;
 
 export default function CheckoutSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [state, setState] = useState<"confirming" | "done" | "error">("confirming");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
   const called = useRef(false);
 
   useEffect(() => {
@@ -22,46 +23,36 @@ export default function CheckoutSuccessPage() {
     const amount = searchParams.get("amount");
 
     if (!paymentKey || !orderId || !amount) {
-      setErrorMessage("결제 정보가 부족합니다.");
-      setState("error");
+      // 정보가 부족하면 그대로 reservations 로 보냄. (alert 가 뜨는 케이스는 아니지만 막막한 정지를 피함.)
+      router.replace("/user/reservations");
       return;
     }
 
     confirmPayment({ paymentKey, orderId, amount: Number(amount) })
-      .then(() => setState("done"))
+      .then(() => {
+        setDone(true);
+        // 잠깐 "결제 완료" 노출 후 자동 이동.
+        setTimeout(() => router.replace("/user/reservations"), REDIRECT_DELAY_MS);
+      })
       .catch((e) => {
+        // fetch.server.ts 의 alert 가 이미 사용자에게 에러를 알림. 페이지는 멈추지 않고 reservations 로.
         console.error("Confirm failed:", e);
-        // 백엔드 ErrorResponse: { code, message } — message 에 토스 응답까지 들어있음.
-        const err = e as { code?: number | string; message?: string };
-        const detail = err?.message ?? "결제 승인 중 오류가 발생했습니다.";
-        setErrorMessage(`[${err?.code ?? "ERR"}] ${detail}`);
-        setState("error");
+        router.replace("/user/reservations");
       });
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   return (
     <UserLayout>
       <div className="mx-auto max-w-xl space-y-6 text-center">
-        {state === "confirming" && (
+        {done ? (
+          <>
+            <h1 className="text-2xl font-bold text-pink-600">결제가 완료되었습니다 🎉</h1>
+            <p className="text-zinc-500">예약 내역 페이지로 이동합니다...</p>
+          </>
+        ) : (
           <>
             <h1 className="text-2xl font-bold">결제 승인 중...</h1>
             <p className="text-zinc-500">잠시만 기다려 주세요.</p>
-          </>
-        )}
-        {state === "done" && (
-          <>
-            <h1 className="text-2xl font-bold text-pink-600">결제가 완료되었습니다 🎉</h1>
-            <p className="text-zinc-500">예약 내역에서 결제 상태를 확인할 수 있습니다.</p>
-            <Button onClick={() => router.push("/user/reservations")}>내 예약으로 이동</Button>
-          </>
-        )}
-        {state === "error" && (
-          <>
-            <h1 className="text-2xl font-bold text-red-600">결제 처리 실패</h1>
-            <p className="text-zinc-500">{errorMessage}</p>
-            <Button variant="outline" onClick={() => router.push("/user/reservations")}>
-              내 예약으로 이동
-            </Button>
           </>
         )}
       </div>

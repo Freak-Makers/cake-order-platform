@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserLayout } from "@/components/layout/UserLayout";
 import { Button } from "@/components/ui/Button";
@@ -14,29 +14,26 @@ export default function CheckoutFailPage() {
   const message = searchParams.get("message");
   const orderId = searchParams.get("orderId");
   const reservationIdStr = searchParams.get("reservationId");
+  const reservationId = reservationIdStr ? Number(reservationIdStr) : null;
 
-  const [recordState, setRecordState] = useState<"idle" | "recording" | "done" | "error">("idle");
   const recorded = useRef(false);
 
   useEffect(() => {
     if (recorded.current) return;
-    if (!reservationIdStr || !code || !message) return;
+    if (!reservationId || !code || !message) return;
     recorded.current = true;
 
-    setRecordState("recording");
+    // 백엔드 감사 로그용. 실패해도 alert 가 책임지고 사용자에게 알림 — 페이지 자체에는 별도 UI 표시 안 함.
     failPayment({
-      reservationId: Number(reservationIdStr),
+      reservationId,
       paymentKey: null,
       orderId,
       code,
       message,
-    })
-      .then(() => setRecordState("done"))
-      .catch((e) => {
-        console.error("Failed to record payment failure:", e);
-        setRecordState("error");
-      });
-  }, [reservationIdStr, code, message, orderId]);
+    }).catch((e) => {
+      console.error("Failed to record payment failure:", e);
+    });
+  }, [reservationId, code, message, orderId]);
 
   return (
     <UserLayout>
@@ -47,13 +44,23 @@ export default function CheckoutFailPage() {
           {message && <p><span className="font-medium">message</span>: {message}</p>}
           {orderId && <p><span className="font-medium">orderId</span>: {orderId}</p>}
         </div>
-        {recordState === "recording" && (
-          <p className="text-xs text-zinc-500">실패 내역을 기록 중...</p>
-        )}
-        {recordState === "error" && (
-          <p className="text-xs text-amber-600">실패 내역 기록에 실패했지만 다시 결제할 수 있습니다.</p>
-        )}
-        <Button onClick={() => router.push("/user/reservations")}>내 예약으로 돌아가기</Button>
+        <div className="flex gap-3">
+          {reservationId && (
+            <Button
+              onClick={() => router.push(`/user/reservations/${reservationId}/checkout`)}
+              className="flex-1 bg-pink-500 hover:bg-pink-600"
+            >
+              다시 결제하기
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => router.push("/user/reservations")}
+            className="flex-1"
+          >
+            내 예약으로 돌아가기
+          </Button>
+        </div>
       </div>
     </UserLayout>
   );

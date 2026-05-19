@@ -33,10 +33,11 @@ export default function CheckoutPage() {
     preparePayment(reservationId)
       .then(setPrepare)
       .catch((e) => {
+        // fetch.server.ts 의 alert 가 이미 사용자에게 에러를 알림. 페이지는 멈추지 않고 reservations 로.
         console.error("Failed to prepare payment:", e);
-        setError("결제 준비에 실패했습니다. 확정된 예약인지 확인해주세요.");
+        router.replace("/user/reservations");
       });
-  }, [reservationId]);
+  }, [reservationId, router]);
 
   useEffect(() => {
     if (!prepare || widgetsInitialized.current) return;
@@ -97,7 +98,23 @@ export default function CheckoutPage() {
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{error}</div>
+          <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 space-y-3">
+            <p>{error}</p>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => window.location.reload()}
+                className="bg-pink-500 hover:bg-pink-600"
+              >
+                다시 시도
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/user/reservations")}
+              >
+                내 예약으로 돌아가기
+              </Button>
+            </div>
+          </div>
         )}
 
         {prepare ? (

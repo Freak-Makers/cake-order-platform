@@ -1,4 +1,6 @@
 import {ErrorResponse, SuccessResponse} from "@/api/types";
+import { ApiError } from "@/api/api-error";
+import { showToast } from "@/lib/toast";
 
 const baseUrl = 'http://localhost:8080';
 
@@ -27,9 +29,17 @@ export async function fetchApi<T>(
     });
 
   } catch (error) {
-    // ✅ NETWORK ERROR
+    // ✅ NETWORK ERROR — 백엔드 다운, DNS 실패, CORS 차단, 네트워크 단절 등
+    // fetch 가 throw 한 시점이라 HTTP 응답 자체가 없음 → 4xx/5xx 분기로 가지 못함.
+    // 4xx/5xx 와 같은 사용자 경험을 위해 페이지 하단 토스트로 알리고 그대로 throw.
     console.error("[NETWORK ERROR]", error);
-    throw error;
+    showToast("9000: 서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    throw new ApiError(
+      error instanceof Error ? error.message : "Network error",
+      9000,
+      null,
+      error,
+    );
   }
 
   // ✅ DEBUG BODY LOG
@@ -56,12 +66,12 @@ export async function fetchApi<T>(
     console.debug("status:", response.status);
 
     if (errorBody) {
-      alert(`${errorBody?.code}: ${errorBody?.message}`);
+      showToast(`${errorBody.code}: ${errorBody.message}`);
+      throw new ApiError(errorBody.message, errorBody.code, response.status, errorBody.details);
     } else {
-      alert(`9999: 일시적인 오류입니다. 잠시 후 시돋해주세요.`);
+      showToast("9999: 일시적인 오류입니다. 잠시 후 다시 시도해주세요.");
+      throw new ApiError(`HTTP ${response.status}`, 9999, response.status);
     }
-
-    throw errorBody ?? new Error(`HTTP ${response.status}`);
   }
 
   // ✅ SUCCESS INTERCEPTOR (Axios response.data 역할)
