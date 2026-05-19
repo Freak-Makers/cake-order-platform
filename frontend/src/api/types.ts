@@ -14,6 +14,15 @@ export interface ErrorResponse {
   timestamp: string;
 }
 
+// 헤더 popover 에서 보여줄 로그인 사용자 정보. AuthContext + localStorage 에 저장됨.
+export interface UserInfo {
+  id: number | null; // 더미 admin 로그인 은 null
+  nickname: string;
+  email: string | null;
+  profileImageUrl: string | null;
+  provider: "KAKAO" | "ADMIN";
+}
+
 // Product Types
 export type ProductStatus = "AVAILABLE" | "SOLD_OUT" | "HIDDEN";
 

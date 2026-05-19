@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { Cake, ShoppingCart, User, LogOut, X, Trash2, Plus, Minus, Menu } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { UserInfoPopover } from "@/components/layout/UserInfoPopover";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -17,16 +18,18 @@ const NAV_ITEMS = [
 ];
 
 export function UserLayout({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, isLoading, logout } = useAuth();
+  const { isLoggedIn, isLoading, logout, userInfo } = useAuth();
   const { items, totalCount, totalPrice, updateQuantity, removeItem } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  // 라우트 이동 시 모바일 메뉴 자동 닫기
+  // 라우트 이동 시 모바일 메뉴 / 내 정보 popover 자동 닫기
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsInfoOpen(false);
   }, [pathname]);
 
   const handleReserveFromCart = () => {
@@ -84,8 +87,38 @@ export function UserLayout({ children }: { children: React.ReactNode }) {
                       </span>
                     )}
                   </button>
-                  <div className="hidden h-8 w-8 overflow-hidden rounded-full bg-zinc-200 sm:block">
-                    <User size={32} className="p-1 text-zinc-400" />
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        // popover 내부 mousedown 외부 감지와 충돌 방지: 토글은 직접 처리.
+                        e.stopPropagation();
+                        setIsInfoOpen((prev) => !prev);
+                      }}
+                      className="block h-8 w-8 overflow-hidden rounded-full bg-zinc-200 transition-opacity hover:opacity-80"
+                      aria-label="내 정보 열기"
+                      aria-haspopup="dialog"
+                      aria-expanded={isInfoOpen}
+                    >
+                      {userInfo?.profileImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={userInfo.profileImageUrl}
+                          alt={userInfo.nickname}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <User size={32} className="p-1 text-zinc-400" />
+                      )}
+                    </button>
+                    <UserInfoPopover
+                      userInfo={userInfo}
+                      isOpen={isInfoOpen}
+                      onClose={() => setIsInfoOpen(false)}
+                    />
                   </div>
                   <button onClick={logout} className="text-sm font-medium text-zinc-500 hover:text-zinc-900" aria-label="로그아웃">
                     <LogOut size={18} />

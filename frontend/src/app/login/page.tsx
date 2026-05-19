@@ -36,7 +36,13 @@ export default function LoginPage() {
         email: adminEmail,
         password: adminPassword,
       });
-      login(response.accessToken, response.role);
+      login(response.accessToken, response.role, {
+        id: response.id,
+        nickname: response.nickname,
+        email: response.email ?? adminEmail ?? null,
+        profileImageUrl: null,
+        provider: "ADMIN",
+      });
       router.push("/dashboard");
     } catch (e) {
       console.error("Admin login failed:", e);
