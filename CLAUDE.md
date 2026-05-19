@@ -107,6 +107,33 @@ App Router (`src/app/`). 주요 경로: `/admin/*`, `/user/*`, `/oauth/kakao/cal
 
 App Router 관련은 외워둔 지식 말고 설치된 문서 기준으로 확인.
 
+### 반응형 디자인 (중요)
+
+모든 페이지·컴포넌트는 **모바일 우선 (mobile-first)** 으로 작성. 기본 클래스는 모바일 기준, `sm:`/`md:`/`lg:`/`xl:` 로 더 큰 화면을 덮어쓴다.
+
+**Tailwind 브레이크포인트** (기본값 사용 — 별도 설정 없음):
+- `sm:` ≥ 640px (큰 모바일 / 작은 태블릿)
+- `md:` ≥ 768px (태블릿)
+- `lg:` ≥ 1024px (데스크탑) — 사이드바가 펼쳐지는 분기점
+- `xl:` ≥ 1280px
+
+**레이아웃 컴포넌트 (`src/components/layout/`):**
+- `DashboardLayout` / `Sidebar` — `lg` 미만에서는 사이드바가 햄버거 메뉴로 변환되는 drawer. `Sidebar` 는 `isOpen`/`onClose` props 로 제어.
+- `UserLayout` — `md` 미만에서 상단 네비게이션이 햄버거 drawer 로 전환. 장바구니 drawer 는 모든 너비에서 우측 슬라이드.
+
+**페이지 작성 시 체크리스트:**
+- 타이틀: 모바일은 `text-xl`, sm 이상은 `text-2xl` 로 단계 조정 (`text-xl sm:text-2xl`).
+- 상단 액션 바 (`h1` + 버튼): 모바일은 세로 스택, `sm:` 이상 가로 (`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`).
+- 버튼 그룹: 모바일은 풀 폭 (`w-full`), `sm:` 이상은 `sm:w-auto` / `sm:flex-1` 로 회복.
+- 좌우 패딩: 페이지 컨테이너는 `px-4 sm:px-6` 정도로 모바일에서는 더 좁게.
+- 카드 패딩: `p-4 sm:p-6` 처럼 단계 조정. 큰 패딩은 모바일에서 콘텐츠 영역을 갉아먹음.
+- 표(Table): 가로 스크롤 허용 (`<div className="overflow-x-auto">` 로 감쌈). 모바일에서 잘리지 않게.
+- 그리드: 기본 1열, `sm:grid-cols-2`, `lg:grid-cols-3/4` 로 확대. `gap` 도 모바일에서 더 작게 (`gap-4 sm:gap-6`).
+
+**모달:**
+- `inset-0 flex items-center justify-center p-3 sm:p-4` 컨테이너 안에 `relative flex max-h-[92vh] w-full max-w-... flex-col` 패널을 두는 패턴. `top-1/2 -translate-y-1/2` 패턴은 콘텐츠가 길어지면 모바일에서 잘리므로 **금지**.
+- 풋터 버튼: 모바일은 `flex-col-reverse` 로 주 버튼이 위에 오게 + `w-full`.
+
 ## 작성 관례
 
 - 주석/로그는 한국어. 주변 스타일에 맞출 것.

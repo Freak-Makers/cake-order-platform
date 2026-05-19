@@ -125,8 +125,8 @@ export default function ProductDetailPage() {
 
   return (
     <UserLayout>
-      <div className="mx-auto max-w-4xl space-y-10">
-        <div className="grid gap-8 md:grid-cols-2">
+      <div className="mx-auto max-w-4xl space-y-8 sm:space-y-10">
+        <div className="grid gap-6 md:grid-cols-2 md:gap-8">
           <div className="overflow-hidden rounded-2xl bg-zinc-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={product.imageUrl} alt={product.name} className="aspect-square w-full object-cover" />
@@ -135,8 +135,8 @@ export default function ProductDetailPage() {
             <span className="inline-flex w-fit rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700">
               {product.category}
             </span>
-            <h1 className="text-3xl font-bold text-zinc-900">{product.name}</h1>
-            <p className="text-2xl font-bold text-pink-600">{formatPrice(product.price)}</p>
+            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl">{product.name}</h1>
+            <p className="text-xl font-bold text-pink-600 sm:text-2xl">{formatPrice(product.price)}</p>
             {product.description && (
               <p className="whitespace-pre-wrap text-sm text-zinc-600 leading-relaxed">{product.description}</p>
             )}
@@ -192,7 +192,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            <div className="mt-2 flex gap-3">
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:gap-3">
               <Button variant="outline" onClick={handleAddToCart} className="gap-2">
                 <ShoppingCart size={16} />
                 장바구니 담기
@@ -207,8 +207,8 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        <section className="space-y-4 border-t border-zinc-100 pt-8">
-          <h2 className="text-xl font-bold text-zinc-900">후기 ({reviews.length})</h2>
+        <section className="space-y-4 border-t border-zinc-100 pt-6 sm:pt-8">
+          <h2 className="text-lg font-bold text-zinc-900 sm:text-xl">후기 ({reviews.length})</h2>
 
           {isLoggedIn && (
             <form onSubmit={handleSubmitReview} className="space-y-3 rounded-xl border border-zinc-200 bg-white p-4">

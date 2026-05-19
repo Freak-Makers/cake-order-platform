@@ -200,35 +200,35 @@ export default function UserProductsPage() {
   return (
     <UserLayout>
       {/* Hero — editorial, blush-toned */}
-      <section className="relative mb-20 overflow-hidden rounded-[2rem] border border-rose-100/70 bg-gradient-to-br from-rose-50 via-stone-50 to-amber-50/60 px-8 py-20 md:px-16 md:py-28">
+      <section className="relative mb-12 overflow-hidden rounded-2xl border border-rose-100/70 bg-gradient-to-br from-rose-50 via-stone-50 to-amber-50/60 px-5 py-14 sm:mb-16 sm:rounded-[2rem] sm:px-8 sm:py-20 md:mb-20 md:px-16 md:py-28">
         <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-rose-200/40 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-amber-100/40 blur-3xl" />
-        <div className="pointer-events-none absolute inset-x-12 top-8 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.4em] text-stone-400">
+        <div className="pointer-events-none absolute inset-x-6 top-5 hidden items-center justify-between text-[10px] font-medium uppercase tracking-[0.4em] text-stone-400 sm:flex sm:inset-x-12 sm:top-8">
           <span>Maison de Gâteau</span>
           <span className="hidden md:inline">No. 001</span>
         </div>
-        <div className="pointer-events-none absolute inset-x-12 bottom-8 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.4em] text-stone-400">
+        <div className="pointer-events-none absolute inset-x-6 bottom-5 hidden items-center justify-between text-[10px] font-medium uppercase tracking-[0.4em] text-stone-400 sm:flex sm:inset-x-12 sm:bottom-8">
           <span className="hidden md:inline">Seoul · 2026</span>
           <span>Spring Collection</span>
         </div>
 
         <div className="relative z-10 mx-auto max-w-3xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-200/80 bg-white/70 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.3em] text-rose-500 backdrop-blur">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-200/80 bg-white/70 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.25em] text-rose-500 backdrop-blur sm:mb-6 sm:px-4 sm:py-1.5 sm:text-[11px] sm:tracking-[0.3em]">
             <Sparkles size={12} /> Hand-crafted, made to order
           </div>
-          <h1 className="text-balance text-5xl font-light leading-[1.05] tracking-tight text-stone-900 md:text-6xl">
+          <h1 className="text-balance text-3xl font-light leading-[1.1] tracking-tight text-stone-900 sm:text-5xl sm:leading-[1.05] md:text-6xl">
             오늘의 작은 사치,
             <br />
             <span className="font-serif italic text-rose-500">한 조각의</span> 케이크.
           </h1>
-          <p className="mx-auto mt-8 max-w-xl text-balance text-base leading-relaxed text-stone-500 md:text-lg">
+          <p className="mx-auto mt-5 max-w-xl text-balance text-sm leading-relaxed text-stone-500 sm:mt-8 sm:text-base md:text-lg">
             엄선된 재료와 한 분의 파티시에가 빚어내는 디자인. <br className="hidden md:inline" />
             특별한 하루를 위한 단 하나의 케이크를 만나보세요.
           </p>
-          <div className="mt-10 flex items-center justify-center gap-3 text-xs uppercase tracking-[0.3em] text-stone-400">
-            <span className="h-px w-10 bg-stone-300" />
+          <div className="mt-7 flex items-center justify-center gap-3 text-[10px] uppercase tracking-[0.3em] text-stone-400 sm:mt-10 sm:text-xs">
+            <span className="h-px w-8 bg-stone-300 sm:w-10" />
             Today's Selection
-            <span className="h-px w-10 bg-stone-300" />
+            <span className="h-px w-8 bg-stone-300 sm:w-10" />
           </div>
         </div>
       </section>
@@ -484,28 +484,28 @@ export default function UserProductsPage() {
       {selectedProduct && (
         <>
           <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md" onClick={() => setSelectedProduct(null)} />
-          <div className="fixed inset-x-4 top-[5%] bottom-[5%] z-50 mx-auto max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200">
-            <button 
+          <div className="fixed inset-x-2 top-[2%] bottom-[2%] z-50 mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200 sm:inset-x-4 sm:top-[5%] sm:bottom-[5%] sm:rounded-3xl">
+            <button
               onClick={() => setSelectedProduct(null)}
-              className="absolute right-6 top-6 z-20 rounded-full bg-white/80 p-2 text-stone-500 backdrop-blur-md transition-all hover:bg-white hover:text-stone-900 hover:rotate-90"
+              className="absolute right-3 top-3 z-20 rounded-full bg-white/80 p-2 text-stone-500 backdrop-blur-md transition-all hover:bg-white hover:text-stone-900 hover:rotate-90 sm:right-6 sm:top-6"
             >
-              <X size={24} />
+              <X size={22} />
             </button>
-            
+
             <div className="flex h-full flex-col md:flex-row">
               {/* Left: Image (Stays top on mobile) */}
-              <div className="md:w-1/2 h-64 md:h-auto overflow-hidden bg-stone-100">
+              <div className="h-48 shrink-0 overflow-hidden bg-stone-100 sm:h-64 md:h-auto md:w-1/2">
                 <img src={selectedProduct.imageUrl} alt={selectedProduct.name} className="h-full w-full object-cover" />
               </div>
 
               {/* Right: Content */}
               <div className="flex flex-1 flex-col overflow-hidden">
                 {/* Fixed Header */}
-                <div className="border-b border-stone-100 p-8 pb-4">
-                  <span className="text-xs font-black text-rose-500 uppercase tracking-[0.2em]">{selectedProduct.category}</span>
-                  <h2 className="mt-2 text-3xl font-black text-stone-900 leading-tight">{selectedProduct.name}</h2>
-                  <div className="mt-3 flex items-center justify-between">
-                    <p className="text-2xl font-black text-stone-900">{selectedProduct.price.toLocaleString()}원</p>
+                <div className="border-b border-stone-100 p-5 pb-4 sm:p-8">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 sm:text-xs">{selectedProduct.category}</span>
+                  <h2 className="mt-2 text-xl font-black leading-tight text-stone-900 sm:text-3xl">{selectedProduct.name}</h2>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xl font-black text-stone-900 sm:text-2xl">{selectedProduct.price.toLocaleString()}원</p>
                     <button
                       onClick={() => {
                         const id = selectedProduct.id;
@@ -520,29 +520,29 @@ export default function UserProductsPage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-stone-100 px-8">
-                  <button 
+                <div className="flex border-b border-stone-100 px-5 sm:px-8">
+                  <button
                     onClick={() => setActiveTab("order")}
                     className={cn(
-                      "flex items-center gap-2 border-b-2 py-4 text-sm font-bold transition-all",
+                      "flex items-center gap-2 border-b-2 py-3 text-sm font-bold transition-all sm:py-4",
                       activeTab === "order" ? "border-rose-500 text-rose-600" : "border-transparent text-stone-400 hover:text-stone-600"
                     )}
                   >
                     <ShoppingCart size={18} /> 주문 정보
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActiveTab("reviews")}
                     className={cn(
-                      "flex items-center gap-2 border-b-2 py-4 text-sm font-bold transition-all ml-8",
+                      "ml-6 flex items-center gap-2 border-b-2 py-3 text-sm font-bold transition-all sm:ml-8 sm:py-4",
                       activeTab === "reviews" ? "border-rose-500 text-rose-600" : "border-transparent text-stone-400 hover:text-stone-600"
                     )}
                   >
-                    <MessageCircle size={18} /> 상품 후기 ({reviews.length || 0})
+                    <MessageCircle size={18} /> 후기 ({reviews.length || 0})
                   </button>
                 </div>
 
                 {/* Tab Content: Scrollable */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="custom-scrollbar flex-1 overflow-y-auto p-5 sm:p-8">
                   {activeTab === "order" ? (
                     <div className="space-y-8 animate-in fade-in duration-300">
                       <div>
@@ -689,17 +689,17 @@ export default function UserProductsPage() {
 
                 {/* Fixed Footer: Order Button (Only show on Order Tab) */}
                 {activeTab === "order" && (
-                  <div className="border-t border-stone-100 p-8 pt-6 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-stone-500 font-medium">최종 결제 금액</span>
-                      <span className="text-3xl font-black text-rose-500">{(selectedProduct.price * orderQuantity).toLocaleString()}원</span>
+                  <div className="border-t border-stone-100 p-5 pt-4 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] sm:p-8 sm:pt-6">
+                    <div className="mb-3 flex items-center justify-between sm:mb-4">
+                      <span className="font-medium text-stone-500">최종 결제 금액</span>
+                      <span className="text-2xl font-black text-rose-500 sm:text-3xl">{(selectedProduct.price * orderQuantity).toLocaleString()}원</span>
                     </div>
-                    <div className="flex gap-3">
-                      <Button variant="outline" onClick={handleAddToCart} className="h-14 flex-1 text-base font-bold border-2">장바구니 담기</Button>
+                    <div className="flex gap-2 sm:gap-3">
+                      <Button variant="outline" onClick={handleAddToCart} className="h-12 flex-1 border-2 text-sm font-bold sm:h-14 sm:text-base">장바구니 담기</Button>
                       <Button
                         onClick={handleReserve}
                         disabled={isReserving || !selectedSlotId}
-                        className="h-14 flex-[2] bg-rose-500 hover:bg-rose-600 text-white text-base font-black shadow-lg shadow-rose-200"
+                        className="h-12 flex-[2] bg-rose-500 text-sm font-black text-white shadow-lg shadow-rose-200 hover:bg-rose-600 sm:h-14 sm:text-base"
                       >
                         {isReserving ? <Loader2 className="animate-spin" size={24} /> : "예약 신청"}
                       </Button>

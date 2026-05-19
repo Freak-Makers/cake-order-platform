@@ -38,17 +38,17 @@ export default function CheckoutFailPage() {
   return (
     <UserLayout>
       <div className="mx-auto max-w-xl space-y-6 text-center">
-        <h1 className="text-2xl font-bold text-red-600">결제가 취소되었거나 실패했습니다</h1>
+        <h1 className="text-xl font-bold text-red-600 sm:text-2xl">결제가 취소되었거나 실패했습니다</h1>
         <div className="rounded-lg bg-red-50 p-4 text-left text-sm text-red-700 space-y-1">
           {code && <p><span className="font-medium">code</span>: {code}</p>}
           {message && <p><span className="font-medium">message</span>: {message}</p>}
           {orderId && <p><span className="font-medium">orderId</span>: {orderId}</p>}
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
           {reservationId && (
             <Button
               onClick={() => router.push(`/user/reservations/${reservationId}/checkout`)}
-              className="flex-1 bg-pink-500 hover:bg-pink-600"
+              className="w-full bg-pink-500 hover:bg-pink-600 sm:flex-1"
             >
               다시 결제하기
             </Button>
@@ -56,7 +56,7 @@ export default function CheckoutFailPage() {
           <Button
             variant="outline"
             onClick={() => router.push("/user/reservations")}
-            className="flex-1"
+            className="w-full sm:flex-1"
           >
             내 예약으로 돌아가기
           </Button>

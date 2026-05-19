@@ -98,12 +98,12 @@ export default function ProductsPage() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">상품 관리</h1>
+          <h1 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">상품 관리</h1>
           <p className="text-sm text-zinc-500">총 {total}건</p>
         </div>
-        <Button className="gap-2 bg-pink-500 hover:bg-pink-600" onClick={handleOpenCreate}>
+        <Button className="w-full gap-2 bg-pink-500 hover:bg-pink-600 sm:w-auto" onClick={handleOpenCreate}>
           <Plus size={18} />
           새 상품 등록
         </Button>

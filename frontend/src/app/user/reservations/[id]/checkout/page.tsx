@@ -91,7 +91,7 @@ export default function CheckoutPage() {
     <UserLayout>
       <div className="mx-auto max-w-2xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">결제하기</h1>
+          <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">결제하기</h1>
           <p className="mt-1 text-sm text-zinc-500">
             토스페이먼츠 결제위젯에서 결제수단을 선택하고 결제를 진행하세요.
           </p>
@@ -118,9 +118,9 @@ export default function CheckoutPage() {
         )}
 
         {prepare ? (
-          <div className="rounded-xl border border-zinc-200 bg-white p-6">
+          <div className="rounded-xl border border-zinc-200 bg-white p-4 sm:p-6">
             <p className="text-sm text-zinc-500">{prepare.orderName}</p>
-            <p className="mt-2 text-3xl font-bold text-zinc-900">{formatPrice(prepare.amount)}</p>
+            <p className="mt-2 text-2xl font-bold text-zinc-900 sm:text-3xl">{formatPrice(prepare.amount)}</p>
             <div className="mt-4 space-y-1 text-xs text-zinc-400">
               <p>주문번호: <span className="font-mono">{prepare.orderId}</span></p>
               <p>고객: {prepare.customerName}</p>
@@ -138,11 +138,11 @@ export default function CheckoutPage() {
         <div id="payment-method" className="min-h-[200px]" />
         <div id="agreement" />
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
           <Button
             variant="outline"
             onClick={() => router.push("/user/reservations")}
-            className="flex-1"
+            className="w-full sm:flex-1"
             disabled={isRequesting}
           >
             취소
@@ -150,7 +150,7 @@ export default function CheckoutPage() {
           <Button
             onClick={handlePay}
             disabled={!widgetReady || isRequesting}
-            className="flex-[2] gap-2 bg-pink-500 hover:bg-pink-600"
+            className="w-full gap-2 bg-pink-500 hover:bg-pink-600 sm:flex-[2]"
           >
             <CreditCard size={16} />
             {isRequesting ? "결제창 이동 중..." : "결제하기"}

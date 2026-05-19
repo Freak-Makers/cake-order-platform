@@ -85,14 +85,14 @@ export function ProductFormModal({ mode, initial, onClose, onSuccess }: Props) {
   };
 
   return (
-    <>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" role="dialog" aria-modal="true">
       <div
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-2xl -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
-          <h2 className="text-lg font-bold text-zinc-900">
+      <div className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:max-h-[88vh]">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 sm:px-6">
+          <h2 className="text-base font-bold text-zinc-900 sm:text-lg">
             {mode === "create" ? "새 상품 등록" : "상품 수정"}
           </h2>
           <button
@@ -106,7 +106,7 @@ export function ProductFormModal({ mode, initial, onClose, onSuccess }: Props) {
 
         <form
           onSubmit={handleSubmit}
-          className="max-h-[70vh] space-y-5 overflow-y-auto p-6"
+          className="flex-1 space-y-5 overflow-y-auto p-5 sm:p-6"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
@@ -209,17 +209,17 @@ export function ProductFormModal({ mode, initial, onClose, onSuccess }: Props) {
             <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="w-full sm:w-auto">
               취소
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="gap-2 bg-pink-500 hover:bg-pink-600">
+            <Button type="submit" disabled={isSubmitting} className="w-full gap-2 bg-pink-500 hover:bg-pink-600 sm:w-auto">
               {isSubmitting && <Loader2 size={16} className="animate-spin" />}
               {mode === "create" ? "등록" : "저장"}
             </Button>
           </div>
         </form>
       </div>
-    </>
+    </div>
   );
 }

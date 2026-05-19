@@ -241,9 +241,9 @@ export default function AdminReservationSlotsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">예약 가능 슬롯 관리</h1>
+          <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">예약 가능 슬롯 관리</h1>
           <p className="mt-1 text-sm text-zinc-500">
             기간·요일·시간을 골라 한 번에 여러 슬롯을 만들 수 있습니다. 중복된 시간은 자동으로 건너뜁니다.
           </p>
@@ -251,7 +251,7 @@ export default function AdminReservationSlotsPage() {
 
         {/* 등록 폼 */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <section className="space-y-2">
                 <h2 className="text-sm font-bold text-zinc-900">1. 예약 가능 기간</h2>
@@ -373,7 +373,7 @@ export default function AdminReservationSlotsPage() {
           <h2 className="text-lg font-bold">등록된 슬롯</h2>
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               {/* 월 네비게이션 */}
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-1">
@@ -430,7 +430,7 @@ export default function AdminReservationSlotsPage() {
                       type="button"
                       onClick={() => setSelectedDate(ymd)}
                       className={
-                        "relative flex aspect-square flex-col items-center justify-start gap-0.5 rounded-md border p-1.5 text-xs transition " +
+                        "relative flex aspect-square flex-col items-center justify-start gap-0.5 rounded-md border p-1 text-xs transition sm:p-1.5 " +
                         (isSelected
                           ? "border-pink-500 bg-pink-50"
                           : "border-transparent hover:bg-zinc-50") +
@@ -463,7 +463,7 @@ export default function AdminReservationSlotsPage() {
 
           {/* 선택 날짜 영역 */}
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {isLoading ? (
                 <p className="text-zinc-500">불러오는 중...</p>
               ) : !selectedDate ? (

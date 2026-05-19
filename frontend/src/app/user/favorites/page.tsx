@@ -36,7 +36,7 @@ export default function FavoritesPage() {
     <UserLayout>
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-zinc-900">
+          <h1 className="flex items-center gap-2 text-xl font-bold text-zinc-900 sm:text-2xl">
             <Bookmark size={24} className="text-amber-500" fill="currentColor" />
             내 찜 목록
           </h1>

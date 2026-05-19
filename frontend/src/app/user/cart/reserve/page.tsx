@@ -132,7 +132,7 @@ export default function CartReservePage() {
     <UserLayout>
       <div className="mx-auto max-w-3xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">예약 작성</h1>
+          <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">예약 작성</h1>
           <p className="mt-1 text-sm text-zinc-500">
             장바구니의 각 상품에 픽업 슬롯을 선택해주세요. 한 슬롯은 한 예약에만 배정됩니다.
           </p>
@@ -151,7 +151,7 @@ export default function CartReservePage() {
               const f = forms[item.id];
               const used = usedSlotIdsExcluding(item.id);
               return (
-                <div key={item.id} className="rounded-xl border border-zinc-200 bg-white p-6 space-y-4">
+                <div key={item.id} className="space-y-4 rounded-xl border border-zinc-200 bg-white p-4 sm:p-6">
                   <div className="flex gap-4">
                     <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -206,19 +206,19 @@ export default function CartReservePage() {
               );
             })}
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
               <Button
                 variant="outline"
                 onClick={() => router.push("/user/products")}
                 disabled={isSubmitting}
-                className="flex-1"
+                className="w-full sm:flex-1"
               >
                 상품 더 보기
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={!allSlotPicked || isSubmitting}
-                className="flex-[2] bg-pink-500 hover:bg-pink-600"
+                className="w-full bg-pink-500 hover:bg-pink-600 sm:flex-[2]"
               >
                 {isSubmitting ? "예약 신청 중..." : `${items.length}건 예약 신청`}
               </Button>

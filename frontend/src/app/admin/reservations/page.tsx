@@ -146,9 +146,9 @@ export default function AdminReservationsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900">예약 관리</h1>
+            <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">예약 관리</h1>
             <p className="text-sm text-zinc-500">
               총 {total}건{filterActive && " (필터 적용)"}
             </p>
@@ -157,13 +157,13 @@ export default function AdminReservationsPage() {
 
         {/* 필터 바 */}
         <Card>
-          <CardContent className="flex flex-wrap items-center gap-3 p-4">
-            <div>
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="w-full sm:w-auto">
               <label className="mb-1 block text-xs text-zinc-500">상태</label>
               <select
                 value={statusFilter}
                 onChange={handleStatusChange}
-                className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:border-pink-500 focus:outline-none"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm focus:border-pink-500 focus:outline-none sm:w-auto"
               >
                 {STATUS_OPTIONS.map((o) => (
                   <option key={o.value || "all"} value={o.value}>
@@ -172,7 +172,7 @@ export default function AdminReservationsPage() {
                 ))}
               </select>
             </div>
-            <div className="flex-1 min-w-[200px]">
+            <div className="w-full flex-1 sm:min-w-[200px]">
               <label className="mb-1 block text-xs text-zinc-500">예약번호 검색</label>
               <div className="relative">
                 <Search

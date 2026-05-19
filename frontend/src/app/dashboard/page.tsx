@@ -65,18 +65,18 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label}>
-              <CardContent className="flex items-center gap-4 p-6">
+              <CardContent className="flex items-center gap-4 p-4 sm:p-6">
                 <div className={`rounded-xl ${stat.bg} p-3 ${stat.color}`}>
                   <Icon size={24} />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-zinc-500">{stat.label}</p>
-                  <p className="text-2xl font-bold text-zinc-900">{stat.value}</p>
+                  <p className="truncate text-xl font-bold text-zinc-900 sm:text-2xl">{stat.value}</p>
                 </div>
               </CardContent>
             </Card>
@@ -84,7 +84,7 @@ export default function DashboardPage() {
         })}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>최근 예약 내역</CardTitle>

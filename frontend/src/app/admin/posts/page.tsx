@@ -106,12 +106,12 @@ export default function AdminPostsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900">게시글 관리</h1>
+            <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">게시글 관리</h1>
             <p className="text-sm text-zinc-500">총 {total}건</p>
           </div>
-          <Button className="gap-2 bg-pink-500 hover:bg-pink-600" onClick={handleOpenCreate}>
+          <Button className="w-full gap-2 bg-pink-500 hover:bg-pink-600 sm:w-auto" onClick={handleOpenCreate}>
             <Plus size={18} />
             새 게시글 작성
           </Button>

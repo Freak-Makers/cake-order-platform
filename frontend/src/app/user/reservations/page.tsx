@@ -69,7 +69,7 @@ export default function UserReservationsPage() {
   return (
     <UserLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-zinc-900">내 예약</h1>
+        <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">내 예약</h1>
 
         {isLoading ? (
           <p className="text-zinc-500">불러오는 중...</p>
@@ -86,16 +86,16 @@ export default function UserReservationsPage() {
               return (
                 <li key={r.id}>
                   <Card>
-                    <CardContent className="p-6">
-                      <div className="flex flex-wrap items-start justify-between gap-4">
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                         <div className="min-w-0 flex-1 space-y-1">
-                          <div className="flex items-center gap-3">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                             <span className="text-xs font-medium text-zinc-400">{r.reservationNumber}</span>
                             <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[r.status]}`}>
                               {STATUS_LABEL[r.status]}
                             </span>
                           </div>
-                          <h2 className="text-lg font-bold text-zinc-900">{r.productName}</h2>
+                          <h2 className="text-base font-bold text-zinc-900 sm:text-lg">{r.productName}</h2>
                           <p className="text-sm text-zinc-500">
                             픽업 {new Date(r.slotStartAt).toLocaleString("ko-KR")} · 수량 {r.quantity} · {formatPrice(r.totalPrice)}
                           </p>
@@ -109,15 +109,15 @@ export default function UserReservationsPage() {
                             </p>
                           )}
                         </div>
-                        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                        <div className="flex shrink-0 flex-wrap gap-2">
                           {r.status === "CONFIRMED" && (
-                            <Button onClick={() => handlePay(r.id)}>결제하기</Button>
+                            <Button onClick={() => handlePay(r.id)} className="flex-1 sm:flex-none">결제하기</Button>
                           )}
                           {(r.status === "REQUESTED" || r.status === "CONFIRMED") && (
                             <Button
                               variant="outline"
                               onClick={() => handleCancel(r.id)}
-                              className="text-red-600 hover:bg-red-50"
+                              className="flex-1 text-red-600 hover:bg-red-50 sm:flex-none"
                             >
                               취소
                             </Button>

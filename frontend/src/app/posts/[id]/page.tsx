@@ -172,13 +172,13 @@ export default function PostDetailPage() {
         <header className="space-y-3">
           <div className="flex items-start gap-2">
             {post.isNotice && (
-              <span className="shrink-0 rounded-full bg-pink-500 px-2 py-0.5 text-xs font-bold text-white">
+              <span className="mt-1 shrink-0 rounded-full bg-pink-500 px-2 py-0.5 text-xs font-bold text-white">
                 공지
               </span>
             )}
-            <h1 className="text-3xl font-bold text-zinc-900">{post.title}</h1>
+            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl">{post.title}</h1>
           </div>
-          <div className="flex items-center gap-4 text-sm text-zinc-400">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400 sm:gap-4">
             <span className="flex items-center gap-1">
               <Eye size={16} />
               {post.viewCount}

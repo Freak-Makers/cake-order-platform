@@ -58,14 +58,14 @@ export default function PostsPage() {
   return (
     <UserLayout>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900">홍보 게시글</h1>
+            <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">홍보 게시글</h1>
             <p className="mt-1 text-sm text-zinc-500">
               총 {total}건{debouncedKeyword && ` · "${debouncedKeyword}" 검색`}
             </p>
           </div>
-          <div className="relative w-full max-w-xs">
+          <div className="relative w-full sm:max-w-xs">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"

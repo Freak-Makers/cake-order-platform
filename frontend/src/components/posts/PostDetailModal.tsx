@@ -13,11 +13,11 @@ export function PostDetailModal({ post, products, onClose }: Props) {
   const product = post.productId != null ? products.find((p) => p.id === post.productId) : null;
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed inset-x-4 top-1/2 z-50 mx-auto max-h-[80vh] max-w-2xl -translate-y-1/2 overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
-          <h2 className="text-lg font-bold text-zinc-900">게시글 상세</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:max-h-[88vh]">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 sm:px-6">
+          <h2 className="text-base font-bold text-zinc-900 sm:text-lg">게시글 상세</h2>
           <button
             onClick={onClose}
             className="rounded-md p-1 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
@@ -27,14 +27,14 @@ export function PostDetailModal({ post, products, onClose }: Props) {
           </button>
         </div>
 
-        <div className="max-h-[70vh] space-y-4 overflow-y-auto p-6">
+        <div className="flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
           <div className="flex items-start gap-2">
             {post.isNotice && (
-              <span className="shrink-0 rounded-full bg-pink-500 px-2 py-0.5 text-xs font-bold text-white">
+              <span className="mt-1 shrink-0 rounded-full bg-pink-500 px-2 py-0.5 text-xs font-bold text-white">
                 공지
               </span>
             )}
-            <h1 className="text-xl font-bold text-zinc-900">{post.title}</h1>
+            <h1 className="text-lg font-bold text-zinc-900 sm:text-xl">{post.title}</h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
@@ -68,6 +68,6 @@ export function PostDetailModal({ post, products, onClose }: Props) {
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-700">{post.content}</p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
