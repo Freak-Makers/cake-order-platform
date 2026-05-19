@@ -74,7 +74,7 @@ export default function LandingPage() {
                 </Link>
               )}
               <Button size="lg" variant="outline" className="h-12 w-full px-6 text-base sm:h-14 sm:w-auto sm:px-8">
-                <Link href="/dashboard">
+                <Link href="#features">
                   기능 살펴보기
                 </Link>
               </Button>
@@ -84,7 +84,7 @@ export default function LandingPage() {
 
 
         {/* Features */}
-        <section className="bg-zinc-50 px-5 py-16 sm:px-6 sm:py-24">
+        <section id="features" className="scroll-mt-24 bg-zinc-50 px-5 py-16 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-7xl">
             <div className="grid gap-10 md:grid-cols-3 md:gap-12">
               {[

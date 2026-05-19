@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/utils";
 import { getAdminReservationsPage } from "@/api/reservation.api";
 import { AdminDashboardStats, getDashboardStats } from "@/api/dashboard.api";
 import { AdminReservation } from "@/api/types";
+import { useAuth } from "@/context/AuthContext";
 
 const STATUS_LABEL: Record<AdminReservation["status"], string> = {
   REQUESTED: "신청",
@@ -26,11 +27,17 @@ const STATUS_BADGE: Record<AdminReservation["status"], string> = {
 };
 
 export default function DashboardPage() {
+  const { isLoading: authLoading, isLoggedIn, role } = useAuth();
+  const isAdmin = isLoggedIn && role === "ADMIN";
+
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [recent, setRecent] = useState<AdminReservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // 비로그인/일반 유저가 /dashboard 로 직접 들어오는 경우 401 을 일으키지 않도록 가드.
+    // DashboardLayout 이 redirect 를 처리하지만, useEffect 가 한 박자 먼저 발사되므로 이쪽에서도 막아야 함.
+    if (authLoading || !isAdmin) return;
     // 통계는 전용 endpoint, 최근 예약은 reservations 페이지의 첫 5건.
     Promise.all([
       getDashboardStats(),
@@ -42,7 +49,7 @@ export default function DashboardPage() {
       })
       .catch((e) => console.error("Failed to fetch dashboard data:", e))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [authLoading, isAdmin]);
 
   const statCards = stats
     ? [
