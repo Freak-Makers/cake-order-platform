@@ -49,4 +49,8 @@ enum class ErrorCode(
     // Product (1700~1799)
     PRODUCT_NOT_FOUND(1700, "상품을 찾을 수 없습니다"),
     PRODUCT_INVALID_CURSOR(1701, "잘못된 커서입니다"),
+
+    // Favorite (1800~1899)
+    FAVORITE_NOT_FOUND(1800, "찜 항목을 찾을 수 없습니다"),
+    FAVORITE_ALREADY_EXISTS(1801, "이미 찜한 상품입니다"),
 }

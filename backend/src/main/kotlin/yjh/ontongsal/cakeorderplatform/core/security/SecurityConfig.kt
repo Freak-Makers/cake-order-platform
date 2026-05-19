@@ -68,6 +68,7 @@ class SecurityConfig(
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/products").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/products/categories").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/products/*").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/products/*/reviews").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/posts").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/posts/*").permitAll()

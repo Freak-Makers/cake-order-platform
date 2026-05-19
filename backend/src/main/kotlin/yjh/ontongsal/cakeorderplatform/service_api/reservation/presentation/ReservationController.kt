@@ -25,4 +25,12 @@ class ReservationController(
     ): ResponseEntity<List<ReservationResponse>> {
         return ResponseEntity.ok(reservationService.getMyReservations(userDetails.userId))
     }
+
+    @PostMapping("/{id}/cancel")
+    fun cancelReservation(
+        @AuthenticationPrincipal userDetails: TestingUserDetails,
+        @PathVariable id: Long,
+    ): ResponseEntity<ReservationResponse> {
+        return ResponseEntity.ok(reservationService.cancelReservation(userDetails.userId, id))
+    }
 }

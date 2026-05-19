@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { Cake, ShoppingCart, User, LogOut, X, Trash2, Plus, Minus } from "lucide-react";
@@ -11,6 +12,12 @@ export function UserLayout({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, isLoading, logout } = useAuth();
   const { items, totalCount, totalPrice, updateQuantity, removeItem } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const router = useRouter();
+
+  const handleReserveFromCart = () => {
+    setIsCartOpen(false);
+    router.push("/user/cart/reserve");
+  };
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -26,6 +33,7 @@ export function UserLayout({ children }: { children: React.ReactNode }) {
           <nav className="hidden items-center gap-8 md:flex">
             <Link href="/user/products" className="text-sm font-medium text-zinc-600 hover:text-pink-600">상품 목록</Link>
             <Link href="/user/reservations" className="text-sm font-medium text-zinc-600 hover:text-pink-600">내 예약</Link>
+            <Link href="/user/favorites" className="text-sm font-medium text-zinc-600 hover:text-pink-600">내 찜</Link>
             <Link href="/posts" className="text-sm font-medium text-zinc-600 hover:text-pink-600">홍보글</Link>
           </nav>
 
@@ -126,8 +134,11 @@ export function UserLayout({ children }: { children: React.ReactNode }) {
                     <span className="text-zinc-500">결제 예정 금액</span>
                     <span className="text-xl font-bold">{totalPrice.toLocaleString()}원</span>
                   </div>
-                  <Button className="w-full h-12 text-base font-bold bg-pink-500 hover:bg-pink-600">
-                    주문하기
+                  <Button
+                    onClick={handleReserveFromCart}
+                    className="w-full h-12 text-base font-bold bg-pink-500 hover:bg-pink-600"
+                  >
+                    예약하기
                   </Button>
                 </div>
               )}

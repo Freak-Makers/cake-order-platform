@@ -33,6 +33,9 @@ class ProductEntity(
     @Column(nullable = false)
     var status: ProductStatus = ProductStatus.AVAILABLE,
 
+    @Column(nullable = false)
+    var likeCount: Long = 0L,
+
     @Column
     var deletedAt: LocalDateTime? = null,
 ) : BaseEntity()

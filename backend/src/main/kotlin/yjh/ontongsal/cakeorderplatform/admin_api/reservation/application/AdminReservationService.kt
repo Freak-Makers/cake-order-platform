@@ -104,6 +104,21 @@ class AdminReservationService(
         return toResponse(reservation)
     }
 
+    @Transactional
+    fun cancelReservation(id: Long): AdminReservationResponse {
+        val reservation = reservationRepository.findById(id)
+            .orElseThrow { AppException.NotFound(ErrorCode.RESERVATION_NOT_FOUND) }
+        if (reservation.status == ReservationStatus.CANCELLED) {
+            throw AppException.BadRequest(
+                ErrorCode.INVALID_RESERVATION_STATUS,
+                "이미 취소된 예약입니다",
+            )
+        }
+        // 관리자는 PAID 도 취소 가능. PAID 의 경우 결제는 그대로 — 환불은 별도 절차에서 처리.
+        reservation.status = ReservationStatus.CANCELLED
+        return toResponse(reservation)
+    }
+
     private fun toResponse(entity: ReservationEntity): AdminReservationResponse {
         val product = productRepository.findById(entity.productId).orElse(null)
         val user = userRepository.findById(entity.userId).orElse(null)

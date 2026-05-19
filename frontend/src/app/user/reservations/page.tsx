@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { UserLayout } from "@/components/layout/UserLayout";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
-import { getMyReservations } from "@/api/reservation.api";
+import { cancelMyReservation, getMyReservations } from "@/api/reservation.api";
 import { getMyPayments } from "@/api/payment.api";
 import { Payment, Reservation, ReservationStatus } from "@/api/types";
 import { formatPrice } from "@/lib/utils";
@@ -55,6 +55,17 @@ export default function UserReservationsPage() {
     router.push(`/user/reservations/${id}/checkout`);
   };
 
+  const handleCancel = async (id: number) => {
+    if (!confirm("예약을 취소하시겠어요? 슬롯이 해제되어 다른 분이 예약할 수 있습니다.")) return;
+    try {
+      const updated = await cancelMyReservation(id);
+      setReservations((prev) => prev.map((r) => (r.id === id ? updated : r)));
+    } catch (e) {
+      // 토스트는 글로벌이 띄움. 페이지 상태는 그대로.
+      console.error("Failed to cancel reservation:", e);
+    }
+  };
+
   return (
     <UserLayout>
       <div className="space-y-6">
@@ -98,9 +109,18 @@ export default function UserReservationsPage() {
                             </p>
                           )}
                         </div>
-                        <div className="shrink-0">
+                        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
                           {r.status === "CONFIRMED" && (
                             <Button onClick={() => handlePay(r.id)}>결제하기</Button>
+                          )}
+                          {(r.status === "REQUESTED" || r.status === "CONFIRMED") && (
+                            <Button
+                              variant="outline"
+                              onClick={() => handleCancel(r.id)}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              취소
+                            </Button>
                           )}
                         </div>
                       </div>

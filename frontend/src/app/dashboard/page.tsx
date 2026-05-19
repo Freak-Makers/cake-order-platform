@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ShoppingBag, Users, TrendingUp, Clock, Loader2 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { getAdminReservationsPage } from "@/api/reservation.api";
+import { AdminDashboardStats, getDashboardStats } from "@/api/dashboard.api";
 import { AdminReservation } from "@/api/types";
 
 const STATUS_LABEL: Record<AdminReservation["status"], string> = {
@@ -25,33 +26,32 @@ const STATUS_BADGE: Record<AdminReservation["status"], string> = {
 };
 
 export default function DashboardPage() {
-  const [reservations, setReservations] = useState<AdminReservation[]>([]);
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [recent, setRecent] = useState<AdminReservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 대시보드용으로 최신 100건 정도만 가져와 통계·최근 5건 표시
-    getAdminReservationsPage({ offset: 0, limit: 100 })
-      .then((data) => setReservations(data.items))
+    // 통계는 전용 endpoint, 최근 예약은 reservations 페이지의 첫 5건.
+    Promise.all([
+      getDashboardStats(),
+      getAdminReservationsPage({ offset: 0, limit: 5 }),
+    ])
+      .then(([s, r]) => {
+        setStats(s);
+        setRecent(r.items);
+      })
       .catch((e) => console.error("Failed to fetch dashboard data:", e))
       .finally(() => setIsLoading(false));
   }, []);
 
-  const today = new Date().toISOString().split("T")[0];
-  const todayReservations = reservations.filter((r) => r.createdAt.startsWith(today));
-  const pending = reservations.filter((r) => r.status === "REQUESTED" || r.status === "CONFIRMED");
-  const uniqueCustomers = new Set(reservations.map((r) => r.customerName)).size;
-  const totalRevenue = reservations
-    .filter((r) => r.status === "PAID" || r.status === "COMPLETED")
-    .reduce((sum, r) => sum + r.totalPrice, 0);
-
-  const stats = [
-    { label: "오늘의 예약", value: `${todayReservations.length}건`, icon: ShoppingBag, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "처리 대기", value: `${pending.length}건`, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-    { label: "누적 고객 수", value: `${uniqueCustomers}명`, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
-    { label: "누적 매출액", value: formatPrice(totalRevenue), icon: TrendingUp, color: "text-pink-600", bg: "bg-pink-50" },
-  ];
-
-  const recent = reservations.slice(0, 5);
+  const statCards = stats
+    ? [
+        { label: "오늘의 예약", value: `${stats.todayReservationCount}건`, icon: ShoppingBag, color: "text-blue-600", bg: "bg-blue-50" },
+        { label: "처리 대기", value: `${stats.pendingReservationCount}건`, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
+        { label: "누적 고객 수", value: `${stats.totalCustomerCount}명`, icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
+        { label: "누적 매출액", value: formatPrice(stats.totalRevenue), icon: TrendingUp, color: "text-pink-600", bg: "bg-pink-50" },
+      ]
+    : [];
 
   if (isLoading) {
     return (
@@ -66,7 +66,7 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
+        {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label}>

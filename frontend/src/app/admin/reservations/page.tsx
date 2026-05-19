@@ -8,6 +8,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Search } fr
 import {
   AdminReservationsDirection,
   AdminReservationsSort,
+  adminCancelReservation,
   confirmReservation,
   getAdminReservationsPage,
 } from "@/api/reservation.api";
@@ -102,6 +103,19 @@ export default function AdminReservationsPage() {
       await fetchReservations();
     } catch (e) {
       console.error("Failed to confirm reservation:", e);
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
+  const handleCancel = async (id: number) => {
+    if (!confirm("이 예약을 취소하시겠어요? PAID 상태라도 결제 row 는 그대로 — 환불은 별도로 처리해야 합니다.")) return;
+    setConfirmingId(id);
+    try {
+      await adminCancelReservation(id);
+      await fetchReservations();
+    } catch (e) {
+      console.error("Failed to cancel reservation:", e);
     } finally {
       setConfirmingId(null);
     }
@@ -222,15 +236,28 @@ export default function AdminReservationsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {r.status === "REQUESTED" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleConfirm(r.id)}
-                              disabled={confirmingId === r.id}
-                            >
-                              {confirmingId === r.id ? "확정 중..." : "확정"}
-                            </Button>
-                          )}
+                          <div className="flex justify-end gap-2">
+                            {r.status === "REQUESTED" && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleConfirm(r.id)}
+                                disabled={confirmingId === r.id}
+                              >
+                                {confirmingId === r.id ? "확정 중..." : "확정"}
+                              </Button>
+                            )}
+                            {r.status !== "CANCELLED" && r.status !== "COMPLETED" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCancel(r.id)}
+                                disabled={confirmingId === r.id}
+                                className="text-red-600 hover:bg-red-50"
+                              >
+                                취소
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))

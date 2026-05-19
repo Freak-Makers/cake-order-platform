@@ -53,6 +53,19 @@ export async function createComment(postId: number, data: CreateCommentRequest) 
   );
 }
 
+// User: 댓글 수정 (작성자 본인만)
+export async function updateComment(postId: number, commentId: number, data: CreateCommentRequest) {
+  return apiClient.put<Comment, CreateCommentRequest>(
+    `/api/v1/posts/${postId}/comments/${commentId}`,
+    data
+  );
+}
+
+// User: 댓글 삭제 (작성자 본인만, 서버 소프트 딜리트)
+export async function deleteComment(postId: number, commentId: number) {
+  return apiClient.delete<void>(`/api/v1/posts/${postId}/comments/${commentId}`);
+}
+
 // Admin: 게시글 목록 (offset 기반 페이지네이션, 공지 먼저 → 최신순)
 export async function getAdminPostsPage(offset = 0, limit = 20) {
   const qs = new URLSearchParams({ offset: String(offset), limit: String(limit) });

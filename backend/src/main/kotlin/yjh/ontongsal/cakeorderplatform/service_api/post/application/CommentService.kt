@@ -13,6 +13,7 @@ import yjh.ontongsal.cakeorderplatform.core.persistence.repository.PostRepositor
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.UserRepository
 import yjh.ontongsal.cakeorderplatform.service_api.post.presentation.CommentCreateRequest
 import yjh.ontongsal.cakeorderplatform.service_api.post.presentation.CommentResponse
+import yjh.ontongsal.cakeorderplatform.service_api.post.presentation.CommentUpdateRequest
 import yjh.ontongsal.cakeorderplatform.service_api.post.presentation.CommentsResponse
 
 private val log = KotlinLogging.logger {}
@@ -24,7 +25,7 @@ class CommentService(
     private val userRepository: UserRepository,
 ) {
     @Transactional(readOnly = true)
-    fun getComments(postId: Long, offset: Int, limit: Int): CommentsResponse {
+    fun getComments(postId: Long, offset: Int, limit: Int, currentUserId: Long?): CommentsResponse {
         if (!postRepository.existsById(postId)) {
             throw AppException.NotFound(ErrorCode.ARTICLE_NOT_FOUND)
         }
@@ -51,6 +52,7 @@ class CommentService(
                 entity = comment,
                 authorName = author?.nickname ?: "Unknown",
                 authorProfileImageUrl = author?.profileImageUrl,
+                isMine = currentUserId != null && comment.userId == currentUserId,
             )
         }
         return CommentsResponse(
@@ -74,6 +76,35 @@ class CommentService(
             entity = saved,
             authorName = author?.nickname ?: "Unknown",
             authorProfileImageUrl = author?.profileImageUrl,
+            isMine = true,
         )
+    }
+
+    @Transactional
+    fun updateComment(commentId: Long, userId: Long, request: CommentUpdateRequest): CommentResponse {
+        val comment = commentRepository.findById(commentId)
+            .orElseThrow { AppException.NotFound(ErrorCode.COMMENT_NOT_FOUND) }
+        if (comment.userId != userId) {
+            throw AppException.Forbidden(ErrorCode.COMMENT_MODIFY_FORBIDDEN)
+        }
+        comment.content = request.content
+        val author = userRepository.findById(userId).orElse(null)
+        return CommentResponse.from(
+            entity = comment,
+            authorName = author?.nickname ?: "Unknown",
+            authorProfileImageUrl = author?.profileImageUrl,
+            isMine = true,
+        )
+    }
+
+    @Transactional
+    fun deleteComment(commentId: Long, userId: Long) {
+        val comment = commentRepository.findById(commentId)
+            .orElseThrow { AppException.NotFound(ErrorCode.COMMENT_NOT_FOUND) }
+        if (comment.userId != userId) {
+            throw AppException.Forbidden(ErrorCode.COMMENT_DELETE_FORBIDDEN)
+        }
+        // CommentEntity 가 @SQLDelete 적용돼 있어 deleteById 가 UPDATE 로 변환됨 (소프트 딜리트).
+        commentRepository.deleteById(commentId)
     }
 }

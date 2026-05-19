@@ -35,6 +35,11 @@ export async function getProduct(id: number) {
   return apiClient.get<Product>(`/api/v1/products/${id}`);
 }
 
+// User: 상품 좋아요 토글 (POST 한 번에 add/remove)
+export async function toggleProductLike(id: number) {
+  return apiClient.post<void>(`/api/v1/products/${id}/like`);
+}
+
 // Admin: 상품 등록 / 수정 공용 페이로드 (수정은 모든 필드 optional 로 전달)
 export interface CreateProductRequest {
   name: string;

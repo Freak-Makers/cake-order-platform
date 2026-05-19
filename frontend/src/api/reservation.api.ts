@@ -31,6 +31,11 @@ export async function getMyReservations() {
   return apiClient.get<Reservation[]>("/api/v1/reservations/my");
 }
 
+// User: 본인 예약 취소 (REQUESTED / CONFIRMED 만 허용. PAID 이후는 환불 흐름 별도)
+export async function cancelMyReservation(reservationId: number) {
+  return apiClient.post<Reservation>(`/api/v1/reservations/${reservationId}/cancel`);
+}
+
 // Admin: 슬롯 관리
 export async function getAdminSlots() {
   return apiClient.get<ReservationSlot[]>("/api/v1/admin/reservation-slots");
@@ -77,4 +82,9 @@ export async function getAdminReservationsPage(params: AdminReservationsQuery = 
 
 export async function confirmReservation(id: number) {
   return apiClient.post<AdminReservation>(`/api/v1/admin/reservations/${id}/confirm`);
+}
+
+// Admin: 예약 취소 (모든 상태 가능. PAID 의 경우 결제 row 는 그대로 — 환불은 별도)
+export async function adminCancelReservation(id: number) {
+  return apiClient.post<AdminReservation>(`/api/v1/admin/reservations/${id}/cancel`);
 }

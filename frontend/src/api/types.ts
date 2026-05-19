@@ -25,8 +25,21 @@ export interface Product {
   price: number;
   imageUrl: string;
   status: ProductStatus;
+  likeCount: number;
+  isLiked: boolean;
+  isFavorited: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Favorite {
+  id: number;
+  productId: number;
+  productName: string;
+  productPrice: number;
+  productImageUrl: string;
+  productStatus: ProductStatus;
+  createdAt: string;
 }
 
 export interface AdminProductsResponse {
@@ -163,6 +176,7 @@ export interface Comment {
   authorName: string;
   authorProfileImageUrl?: string | null;
   content: string;
+  isMine: boolean;
   createdAt: string;
 }
 

@@ -504,7 +504,19 @@ export default function UserProductsPage() {
                 <div className="border-b border-stone-100 p-8 pb-4">
                   <span className="text-xs font-black text-rose-500 uppercase tracking-[0.2em]">{selectedProduct.category}</span>
                   <h2 className="mt-2 text-3xl font-black text-stone-900 leading-tight">{selectedProduct.name}</h2>
-                  <p className="mt-3 text-2xl font-black text-stone-900">{selectedProduct.price.toLocaleString()}원</p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-2xl font-black text-stone-900">{selectedProduct.price.toLocaleString()}원</p>
+                    <button
+                      onClick={() => {
+                        const id = selectedProduct.id;
+                        setSelectedProduct(null);
+                        router.push(`/user/products/${id}`);
+                      }}
+                      className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-rose-500"
+                    >
+                      상세 보기 →
+                    </button>
+                  </div>
                 </div>
 
                 {/* Tabs */}

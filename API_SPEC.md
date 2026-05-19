@@ -78,6 +78,7 @@
   - `limit` *(default 20, 1~50 자동 보정)*
   - `category` *(optional)* — `"전체"` 의미면 미전달
   - `sort` *(default `latest`)* — `latest` | `priceAsc` | `priceDesc`
+- **Header** (선택): `Authorization: Bearer {accessToken}` — 로그인 상태로 호출 시 `isLiked` 가 사용자별 값으로 채워짐. 미로그인이면 모두 `false`.
 - **Response Data**:
   ```json
   {
@@ -90,6 +91,8 @@
         "price": 45000,
         "imageUrl": "https://...",
         "status": "AVAILABLE",
+        "likeCount": 12,
+        "isLiked": false,
         "createdAt": "2024-05-17T10:00:00Z",
         "updatedAt": "2024-05-17T10:00:00Z"
       }
@@ -179,6 +182,25 @@
 - **에러**: 상품 없음 → 404 `PRODUCT_NOT_FOUND(1700)`
 - **삭제 방식**: soft delete (`deleted_at` 컬럼에 시각 기록, 이후 모든 조회에서 자동 제외).
 - **주의**: 이번 단계에서는 연관 예약·결제의 cascade 처리를 하지 않습니다 (orphan 가능). 향후 보강 예정.
+
+### 3.6 상품 단건 조회 (사용자, 공개)
+상품 상세 페이지 진입 시 호출. 인증 불필요. 로그인 토큰이 있으면 `isLiked` 가 사용자별 값으로 채워짐.
+
+- **Method**: `GET`
+- **URL**: `/api/v1/products/{id}`
+- **Header** (선택): `Authorization: Bearer {accessToken}`
+- **Response Data**: 3.1 단건 형식 (`likeCount`, `isLiked` 포함)
+- **에러**: 상품 없음 → 404 `PRODUCT_NOT_FOUND(1700)`
+
+### 3.7 상품 좋아요 토글
+사용자 좋아요 추가/취소를 한 endpoint 에서 처리. 멱등 X — 호출할 때마다 상태 반전.
+
+- **Method**: `POST`
+- **URL**: `/api/v1/products/{id}/like`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Response Data**: 비어있음
+- **에러**: 상품 없음 → 404 `PRODUCT_NOT_FOUND(1700)`
+- **동작**: `ProductLikeEntity` 가 없으면 INSERT + `products.like_count += 1`, 있으면 DELETE + `like_count -= 1` (0 미만 보정).
 
 ---
 
@@ -271,6 +293,26 @@ PRD 의 "예약" 도메인. 흐름: **유저 신청 → 관리자 확정 → 유
 #### 4.5.2 예약 확정
 - `POST /api/v1/admin/reservations/{id}/confirm` — `REQUESTED` → `CONFIRMED`. 다른 상태에서는 400.
 - **Header**: `Authorization: Bearer {accessToken}` (role = ADMIN)
+
+#### 4.5.3 예약 취소 (관리자)
+- `POST /api/v1/admin/reservations/{id}/cancel` — 모든 상태에서 `CANCELLED` 로 전이.
+- **Header**: `Authorization: Bearer {accessToken}` (role = ADMIN)
+- **Response Data**: 갱신된 AdminReservation
+- **에러**: 예약 없음(404, `RESERVATION_NOT_FOUND`), 이미 취소됨(400, `INVALID_RESERVATION_STATUS`)
+- **주의**: `PAID` 상태인 예약을 관리자가 취소해도 PaymentEntity 는 그대로 — 환불은 별도 처리.
+
+### 4.6 예약 취소 (사용자)
+본인 예약 취소. `REQUESTED` 또는 `CONFIRMED` 만 가능 (PAID 이후는 환불 흐름이 별도라 차단).
+
+- **Method**: `POST`
+- **URL**: `/api/v1/reservations/{id}/cancel`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Response Data**: 갱신된 Reservation (`status: "CANCELLED"`)
+- **에러**:
+  - 예약 없음 → 404 `RESERVATION_NOT_FOUND(1500)`
+  - 본인 예약 아님 → 403 `RESERVATION_FORBIDDEN(1503)`
+  - `PAID`/`COMPLETED`/이미 `CANCELLED` 인 경우 → 400 `INVALID_RESERVATION_STATUS(1502)`
+- **부수 효과**: `status = CANCELLED` 가 되면 `takenSlotIds()` 에서 자동 제외돼 해당 슬롯이 다시 예약 가능해짐.
 
 ---
 
@@ -451,6 +493,7 @@ PRD 의 "예약" 도메인. 흐름: **유저 신청 → 관리자 확정 → 유
 ### 6.7 댓글 목록 조회 (페이지네이션)
 - **Method**: `GET`
 - **URL**: `/api/v1/posts/{postId}/comments?offset=0&limit=5`
+- **Header** (선택): `Authorization: Bearer {accessToken}` — 로그인 상태로 호출 시 각 댓글의 `isMine` 이 사용자별 값으로 채워짐. 미로그인이면 모두 `false`.
 - **Query**:
   - `offset` (default 0, limit 의 배수 권장), `limit` (default 5, 1~100 자동 보정)
 - **Response Data**:
@@ -463,6 +506,7 @@ PRD 의 "예약" 도메인. 흐름: **유저 신청 → 관리자 확정 → 유
         "authorName": "홍길동",
         "authorProfileImageUrl": "https://...",
         "content": "꼭 먹어보고 싶네요!",
+        "isMine": false,
         "createdAt": "2024-05-17T16:00:00Z"
       }
     ],
@@ -473,6 +517,7 @@ PRD 의 "예약" 도메인. 흐름: **유저 신청 → 관리자 확정 → 유
   ```
   - 정렬: `createdAt desc` (최신 댓글이 위)
   - soft-deleted 댓글은 자동 제외 (`CommentEntity` `@SQLRestriction`)
+  - `isMine`: 호출자가 작성자인 경우 true. 프론트의 수정/삭제 버튼 노출 판단용.
 
 ### 6.8 댓글 작성
 - **Method**: `POST`
@@ -484,7 +529,35 @@ PRD 의 "예약" 도메인. 흐름: **유저 신청 → 관리자 확정 → 유
     "content": "꼭 먹어보고 싶네요!"
   }
   ```
-- **Response Data**: 6.7 응답 `items` 의 단일 객체와 동일
+- **Response Data**: 6.7 응답 `items` 의 단일 객체와 동일 (작성자 본인 호출이므로 `isMine: true`)
+
+### 6.9 댓글 수정
+본인이 작성한 댓글만 수정 가능. URL 의 `postId` 는 식별용 (서비스는 `commentId` 기준 작성자 검증).
+
+- **Method**: `PUT`
+- **URL**: `/api/v1/posts/{postId}/comments/{commentId}`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Request Body**:
+  ```json
+  {
+    "content": "수정된 댓글 내용"
+  }
+  ```
+- **Response Data**: 6.7 응답 `items` 의 단일 객체 (갱신된 content, `isMine: true`)
+- **에러**:
+  - 댓글 없음 → 404 `COMMENT_NOT_FOUND(1200)`
+  - 본인 댓글 아님 → 403 `COMMENT_MODIFY_FORBIDDEN(1203)`
+
+### 6.10 댓글 삭제
+본인이 작성한 댓글만 삭제 가능. soft delete (`CommentEntity` `@SQLDelete` 가 `DELETE` 를 `UPDATE deleted_at` 으로 변환).
+
+- **Method**: `DELETE`
+- **URL**: `/api/v1/posts/{postId}/comments/{commentId}`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Response Data**: 비어있음
+- **에러**:
+  - 댓글 없음 → 404 `COMMENT_NOT_FOUND(1200)`
+  - 본인 댓글 아님 → 403 `COMMENT_DELETE_FORBIDDEN(1204)`
 
 ---
 
@@ -563,3 +636,70 @@ PRD 의 "예약" 도메인. 흐름: **유저 신청 → 관리자 확정 → 유
   ]
   ```
 - **Payment Status**: `PENDING`, `PAID`, `REFUNDED`, `FAILED` (현재 흐름은 `PAID` 만 생성)
+
+---
+
+## 8. 찜하기 관련 API (Favorite)
+
+PRD 의 "찜하기 목록 추가/제거". **공개 좋아요 카운트와는 별개의 개인 위시리스트**. 한 user × product 조합은 unique.
+
+상품 응답(`ProductResponse`)에는 `isFavorited` 필드가 포함되며, 로그인 상태에서만 사용자별 값으로 채워짐.
+
+### 8.1 찜 추가
+- **Method**: `POST`
+- **URL**: `/api/v1/favorites/{productId}`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Response Data**: 비어있음
+- **에러**: 상품 없음 → 404 `PRODUCT_NOT_FOUND(1700)`
+- **멱등성**: 이미 찜한 상태에서 호출해도 200 통과 (서버가 중복 INSERT 시도 안 함).
+
+### 8.2 찜 제거
+- **Method**: `DELETE`
+- **URL**: `/api/v1/favorites/{productId}`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Response Data**: 비어있음
+- **멱등성**: 찜 되어있지 않아도 200 통과.
+
+### 8.3 내 찜 목록
+- **Method**: `GET`
+- **URL**: `/api/v1/favorites/my`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Response Data** (최신 추가순):
+  ```json
+  [
+    {
+      "id": 1,
+      "productId": 5,
+      "productName": "생딸기 생크림 케이크",
+      "productPrice": 45000,
+      "productImageUrl": "https://...",
+      "productStatus": "AVAILABLE",
+      "createdAt": "2026-05-20T10:00:00Z"
+    }
+  ]
+  ```
+
+---
+
+## 9. 관리자 대시보드 API (Admin Dashboard)
+
+PRD 의 "오늘의 예약 / 처리 대기 / 누적 고객 수 / 누적 매출액" 통계 전용 endpoint. 이전엔 프론트가 reservations 100건을 받아 client 측에서 계산했으나, 정확도(100건 한계)와 성능 이슈가 있어 백엔드 전용 endpoint 로 이관.
+
+### 9.1 대시보드 통계
+- **Method**: `GET`
+- **URL**: `/api/v1/admin/dashboard/stats`
+- **Header**: `Authorization: Bearer {accessToken}` (role = ADMIN)
+- **Response Data**:
+  ```json
+  {
+    "todayReservationCount": 3,
+    "pendingReservationCount": 7,
+    "totalCustomerCount": 42,
+    "totalRevenue": 1875000
+  }
+  ```
+- **계산 기준**:
+  - `todayReservationCount`: `ReservationSlot.startAt` 이 오늘(Asia/Seoul) 인 활성 예약 수 (`CANCELLED` 제외)
+  - `pendingReservationCount`: `status = REQUESTED` 인 예약 수
+  - `totalCustomerCount`: `PaymentStatus = PAID` 인 결제를 1건 이상 보유한 고유 `userId` 수
+  - `totalRevenue`: `PaymentStatus = PAID` 인 결제의 `amount` 합 (원)

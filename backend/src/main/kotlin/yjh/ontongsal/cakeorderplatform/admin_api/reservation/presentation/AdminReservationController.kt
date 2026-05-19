@@ -28,4 +28,9 @@ class AdminReservationController(
     fun confirmReservation(@PathVariable id: Long): ResponseEntity<AdminReservationResponse> {
         return ResponseEntity.ok(adminReservationService.confirmReservation(id))
     }
+
+    @PostMapping("/{id}/cancel")
+    fun cancelReservation(@PathVariable id: Long): ResponseEntity<AdminReservationResponse> {
+        return ResponseEntity.ok(adminReservationService.cancelReservation(id))
+    }
 }

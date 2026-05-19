@@ -10,9 +10,11 @@ import {
   togglePostLike,
   getComments,
   createComment,
+  updateComment,
+  deleteComment,
 } from "@/api/post.api";
 import { Comment, Post } from "@/api/types";
-import { ChevronLeft, ChevronRight, Eye, Heart, MessageSquare } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Heart, MessageSquare, Pencil, Trash2, X, Check } from "lucide-react";
 
 const COMMENT_PAGE_SIZE = 5;
 
@@ -30,6 +32,9 @@ export default function PostDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCommentsLoading, setIsCommentsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // 인라인 수정 상태: 어떤 댓글이 편집 중인지(commentId) + 현재 입력값
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   // 게시글 본문은 한 번만
   useEffect(() => {
@@ -99,6 +104,44 @@ export default function PostDetailPage() {
       console.error("Failed to create comment:", e);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const startEditing = (c: Comment) => {
+    setEditingCommentId(c.id);
+    setEditingText(c.content);
+  };
+
+  const cancelEditing = () => {
+    setEditingCommentId(null);
+    setEditingText("");
+  };
+
+  const handleSaveEdit = async (commentId: number) => {
+    if (!editingText.trim()) return;
+    try {
+      const updated = await updateComment(postId, commentId, { content: editingText.trim() });
+      setComments((prev) => prev.map((c) => (c.id === commentId ? updated : c)));
+      cancelEditing();
+    } catch (e) {
+      console.error("Failed to update comment:", e);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!confirm("이 댓글을 삭제할까요?")) return;
+    try {
+      await deleteComment(postId, commentId);
+      // 현재 페이지에서 삭제된 댓글만 빼고 total 도 보정. 페이지가 비면 한 페이지 앞으로 당김.
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      setTotalComments((t) => Math.max(0, t - 1));
+      if (comments.length === 1 && commentOffset >= COMMENT_PAGE_SIZE) {
+        setCommentOffset(Math.max(0, commentOffset - COMMENT_PAGE_SIZE));
+      } else {
+        setCommentReloadTick((t) => t + 1);
+      }
+    } catch (e) {
+      console.error("Failed to delete comment:", e);
     }
   };
 
@@ -202,16 +245,67 @@ export default function PostDetailPage() {
           ) : (
             <>
               <ul className="space-y-3">
-                {comments.map((c) => (
-                  <li key={c.id} className="rounded-lg border border-zinc-100 bg-white p-4">
-                    <div className="flex items-center gap-2 text-xs text-zinc-500">
-                      <span className="font-medium text-zinc-700">{c.authorName}</span>
-                      <span>·</span>
-                      <span>{new Date(c.createdAt).toLocaleString("ko-KR")}</span>
-                    </div>
-                    <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-700">{c.content}</p>
-                  </li>
-                ))}
+                {comments.map((c) => {
+                  const isEditing = editingCommentId === c.id;
+                  return (
+                    <li key={c.id} className="rounded-lg border border-zinc-100 bg-white p-4">
+                      <div className="flex items-center justify-between gap-2 text-xs text-zinc-500">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-zinc-700">{c.authorName}</span>
+                          <span>·</span>
+                          <span>{new Date(c.createdAt).toLocaleString("ko-KR")}</span>
+                        </div>
+                        {c.isMine && !isEditing && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => startEditing(c)}
+                              className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+                              title="수정"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteComment(c.id)}
+                              className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                              title="삭제"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {isEditing ? (
+                        <div className="mt-2 flex gap-2">
+                          <input
+                            type="text"
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            className="flex-1 rounded-md border border-zinc-200 px-3 py-1.5 text-sm focus:border-pink-500 focus:outline-none"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => handleSaveEdit(c.id)}
+                            disabled={!editingText.trim()}
+                            className="rounded-md bg-pink-500 px-2 py-1 text-white hover:bg-pink-600 disabled:opacity-50"
+                            title="저장"
+                          >
+                            <Check size={14} />
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="rounded-md border border-zinc-200 px-2 py-1 text-zinc-500 hover:bg-zinc-50"
+                            title="취소"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-700">{c.content}</p>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
 
               <div className="flex items-center justify-between gap-3 text-sm">

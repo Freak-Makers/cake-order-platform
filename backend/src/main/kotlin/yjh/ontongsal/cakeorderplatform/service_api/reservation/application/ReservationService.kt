@@ -66,6 +66,24 @@ class ReservationService(
             .map { toResponse(it) }
     }
 
+    @Transactional
+    fun cancelReservation(userId: Long, reservationId: Long): ReservationResponse {
+        val reservation = reservationRepository.findById(reservationId)
+            .orElseThrow { AppException.NotFound(ErrorCode.RESERVATION_NOT_FOUND) }
+        if (reservation.userId != userId) {
+            throw AppException.Forbidden(ErrorCode.RESERVATION_FORBIDDEN)
+        }
+        // 사용자는 REQUESTED / CONFIRMED 만 취소 가능. PAID 이후는 환불 흐름 필요 → 별도 처리.
+        if (reservation.status != ReservationStatus.REQUESTED && reservation.status != ReservationStatus.CONFIRMED) {
+            throw AppException.BadRequest(
+                ErrorCode.INVALID_RESERVATION_STATUS,
+                "현재 상태(${reservation.status})에서는 취소할 수 없습니다. 결제 완료된 예약은 별도 환불 절차가 필요합니다.",
+            )
+        }
+        reservation.status = ReservationStatus.CANCELLED
+        return toResponse(reservation)
+    }
+
     private fun toResponse(entity: ReservationEntity): ReservationResponse {
         val product = productRepository.findById(entity.productId).orElse(null)
         val slot = reservationSlotRepository.findById(entity.slotId).orElse(null)
