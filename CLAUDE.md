@@ -52,6 +52,21 @@ Claude Code(claude.ai/code)가 이 저장소에서 작업할 때 참고하는 �
 
 에러는 `core/advice/AppExceptionHandler`가 처리. `AppException.BadRequest/Unauthorized/Forbidden/NotFound/Conflict/Internal` 중 하나를 `ErrorCode`(`core/exception/ErrorCode.kt`)와 함께 던지면 됨. 에러 코드는 도메인별 100단위 (User 1000번대, Post 1100번대 등)로 새 도메인 추가 시 새 블록 할당.
 
+### 소프트 딜리트 컨벤션
+
+관리자가 영구 데이터를 "삭제" 하는 엔티티(`PostEntity`, `CommentEntity`, `ProductEntity`, `ReservationSlotEntity`)는 Hibernate `@SQLDelete` + `@SQLRestriction("deleted_at IS NULL")` 으로 소프트 딜리트. `deleteById/deleteAll*` 가 자동 UPDATE 로 변환되고, `findAll/findById/existsById` 등 모든 조회가 활성 row 만 반환. 토글 데이터(`PostLike`, `ReviewLike`) 는 hard delete 유지. unique 제약이 있는 엔티티(`ReservationSlot.startAt`)는 소프트 후 충돌을 피하기 위해 unique 를 제거하고 Service 에서 활성 row 기준 중복 검사.
+
+### 페이지네이션 컨벤션
+
+목록 엔드포인트가 페이지네이션이 필요하면 **offset 기반**으로 통일:
+- 쿼리: `?offset=0&limit=20` (0-based, `limit` 1~100 자동 보정, `offset` 은 `limit` 의 배수가 아니면 `(offset/limit)*limit` 로 자동 보정)
+- 응답: `{ items, total, offset, limit }` 4-튜플
+- 내부 구현은 Spring Data `PageRequest.of(offset / limit, limit, Sort.by(...))` 로 변환
+- 정렬은 도메인별 기본값을 고정 (예: 상품 `createdAt desc`)
+- 첫 적용 예: `GET /api/v1/admin/products`
+
+예외 — 사용자 사이트의 무한 스크롤 화면(예: `GET /api/v1/products`)은 **커서 기반**. 쿼리 `?cursor=&limit=&category=&sort=`, 응답 `{ items, nextCursor, hasNext }`. 커서는 Base64(JSON) 의 `{ sort, lastValue, lastId }` — 정렬 키별 tie-breaker `id` 포함. cursor 의 sort 와 query 의 sort 는 일치해야 함(`PRODUCT_INVALID_CURSOR 1701`). admin 콘솔은 offset 유지.
+
 ### 인증
 
 JWT 단일, 무상태. `JwtSecurityContextFilter`가 `Authorization: Bearer ...` 헤더를 파싱해 `TestingUserDetails`(`userId: Long` 포함)를 `SecurityContextHolder`에 넣음. 컨트롤러에서는 `@AuthenticationPrincipal userDetails: TestingUserDetails`로 받아서 `userDetails.userId` 사용.
@@ -83,7 +98,7 @@ App Router (`src/app/`). 주요 경로: `/admin/*`, `/user/*`, `/oauth/kakao/cal
 
 ### 상태
 
-- `AuthContext` (`src/context/AuthContext.tsx`) — JWT를 `localStorage`의 `accessToken` 키에 저장. `isLoggedIn`/`login`/`logout` 제공. **API 레이어가 토큰을 자동으로 헤더에 안 붙임** — 브라우저에서 인증 필요한 호출 추가 시 `fetch.server.ts`/`axios.server.ts`에 직접 연결해야 함.
+- `AuthContext` (`src/context/AuthContext.tsx`) — JWT를 `localStorage`의 `accessToken` 키에 저장. `isLoggedIn`/`login`/`logout` 제공. `fetch.server.ts`/`axios.server.ts` 가 매 요청마다 `localStorage.accessToken` 을 읽어 `Authorization: Bearer ...` 를 자동 첨부 (호출자가 명시한 헤더가 있으면 그 쪽 우선, 토큰 없거나 SSR 컨텍스트면 헤더 생략).
 - `CartProvider`도 `AuthProvider`와 함께 `app/layout.tsx`에서 감쌈.
 
 ### Next.js 버전 주의 (`frontend/AGENTS.md`)
@@ -91,6 +106,33 @@ App Router (`src/app/`). 주요 경로: `/admin/*`, `/user/*`, `/oauth/kakao/cal
 > 알고 있는 Next.js가 아님. 이 버전은 API/관례/파일 구조에 깨지는 변경이 있을 수 있음. 코드 짜기 전에 `node_modules/next/dist/docs/`를 먼저 읽을 것.
 
 App Router 관련은 외워둔 지식 말고 설치된 문서 기준으로 확인.
+
+### 반응형 디자인 (중요)
+
+모든 페이지·컴포넌트는 **모바일 우선 (mobile-first)** 으로 작성. 기본 클래스는 모바일 기준, `sm:`/`md:`/`lg:`/`xl:` 로 더 큰 화면을 덮어쓴다.
+
+**Tailwind 브레이크포인트** (기본값 사용 — 별도 설정 없음):
+- `sm:` ≥ 640px (큰 모바일 / 작은 태블릿)
+- `md:` ≥ 768px (태블릿)
+- `lg:` ≥ 1024px (데스크탑) — 사이드바가 펼쳐지는 분기점
+- `xl:` ≥ 1280px
+
+**레이아웃 컴포넌트 (`src/components/layout/`):**
+- `DashboardLayout` / `Sidebar` — `lg` 미만에서는 사이드바가 햄버거 메뉴로 변환되는 drawer. `Sidebar` 는 `isOpen`/`onClose` props 로 제어.
+- `UserLayout` — `md` 미만에서 상단 네비게이션이 햄버거 drawer 로 전환. 장바구니 drawer 는 모든 너비에서 우측 슬라이드.
+
+**페이지 작성 시 체크리스트:**
+- 타이틀: 모바일은 `text-xl`, sm 이상은 `text-2xl` 로 단계 조정 (`text-xl sm:text-2xl`).
+- 상단 액션 바 (`h1` + 버튼): 모바일은 세로 스택, `sm:` 이상 가로 (`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`).
+- 버튼 그룹: 모바일은 풀 폭 (`w-full`), `sm:` 이상은 `sm:w-auto` / `sm:flex-1` 로 회복.
+- 좌우 패딩: 페이지 컨테이너는 `px-4 sm:px-6` 정도로 모바일에서는 더 좁게.
+- 카드 패딩: `p-4 sm:p-6` 처럼 단계 조정. 큰 패딩은 모바일에서 콘텐츠 영역을 갉아먹음.
+- 표(Table): 가로 스크롤 허용 (`<div className="overflow-x-auto">` 로 감쌈). 모바일에서 잘리지 않게.
+- 그리드: 기본 1열, `sm:grid-cols-2`, `lg:grid-cols-3/4` 로 확대. `gap` 도 모바일에서 더 작게 (`gap-4 sm:gap-6`).
+
+**모달:**
+- `inset-0 flex items-center justify-center p-3 sm:p-4` 컨테이너 안에 `relative flex max-h-[92vh] w-full max-w-... flex-col` 패널을 두는 패턴. `top-1/2 -translate-y-1/2` 패턴은 콘텐츠가 길어지면 모바일에서 잘리므로 **금지**.
+- 풋터 버튼: 모바일은 `flex-col-reverse` 로 주 버튼이 위에 오게 + `w-full`.
 
 ## 작성 관례
 

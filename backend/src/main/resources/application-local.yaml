@@ -52,3 +52,11 @@ kakao:
   client-id: ${KAKAO_CLIENT_ID}
   client-secret: ${KAKAO_CLIENT_SECRET}
   redirect-uri: ${KAKAO_REDIRECT_URI}
+
+toss:
+  client-key: ${TOSS_CLIENT_KEY}
+  secret-key: ${TOSS_SECRET_KEY}
+
+payment:
+  success-url: ${PAYMENT_SUCCESS_URL}
+  fail-url: ${PAYMENT_FAIL_URL}

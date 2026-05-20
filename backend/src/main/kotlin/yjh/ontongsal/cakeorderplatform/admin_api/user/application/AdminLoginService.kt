@@ -21,6 +21,7 @@ class AdminLoginService(
             id = 1,
             nickname = "사장님",
             email = email,
+            role = "ADMIN",
             accessToken = accessToken,
         )
     }

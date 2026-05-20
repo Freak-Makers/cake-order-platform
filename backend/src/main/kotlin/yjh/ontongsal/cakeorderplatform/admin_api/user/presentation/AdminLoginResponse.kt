@@ -4,5 +4,6 @@ data class AdminLoginResponse(
     val id: Long,
     val nickname: String,
     val email: String?,
+    val role: String,
     val accessToken: String,
 )

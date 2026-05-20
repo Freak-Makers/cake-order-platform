@@ -6,6 +6,17 @@ const serverApi = axios.create({
   withCredentials: true,
 });
 
+serverApi.interceptors.request.use((config) => {
+  if (typeof window !== "undefined" && !config.headers?.Authorization) {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 serverApi.interceptors.response.use(
   (response: AxiosResponse) => {
     // ✅ AxiosResponse -> SuccessResponse 로 변환

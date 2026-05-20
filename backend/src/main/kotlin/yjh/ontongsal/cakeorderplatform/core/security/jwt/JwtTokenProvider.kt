@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import yjh.ontongsal.cakeorderplatform.core.exception.InvalidJwtException
 import yjh.ontongsal.cakeorderplatform.core.security.TestingUserDetails
@@ -63,11 +64,17 @@ class JwtTokenProvider(
     fun getAuthentication(token: String): Authentication {
         val jwtUserInfo: JwtUserInfo = getUserInfo(token)
 
+        // role 클레임이 있으면 Spring 의 hasRole() 매처가 인식하도록 ROLE_ 접두사를 붙여 GrantedAuthority 로 변환
+        val authorities = jwtUserInfo.role
+            ?.takeIf { it.isNotBlank() }
+            ?.let { listOf(SimpleGrantedAuthority("ROLE_$it")) }
+            ?: emptyList()
+
         val userDetails = TestingUserDetails(
             userId = jwtUserInfo.userId,
-            email = jwtUserInfo.email,
+            email = jwtUserInfo.email ?: "",
             password = "",
-            authorities = emptyList(),
+            authorities = authorities,
         )
 
         return UsernamePasswordAuthenticationToken(

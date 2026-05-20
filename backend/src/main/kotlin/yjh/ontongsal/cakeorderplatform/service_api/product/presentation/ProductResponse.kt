@@ -12,11 +12,14 @@ data class ProductResponse(
     val price: Long,
     val imageUrl: String,
     val status: ProductStatus,
+    val likeCount: Long,
+    val isLiked: Boolean,
+    val isFavorited: Boolean,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
 ) {
     companion object {
-        fun from(entity: ProductEntity) = ProductResponse(
+        fun from(entity: ProductEntity, isLiked: Boolean = false, isFavorited: Boolean = false) = ProductResponse(
             id = entity.id,
             name = entity.name,
             description = entity.description,
@@ -24,6 +27,9 @@ data class ProductResponse(
             price = entity.price,
             imageUrl = entity.imageUrl,
             status = entity.status,
+            likeCount = entity.likeCount,
+            isLiked = isLiked,
+            isFavorited = isFavorited,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
         )
