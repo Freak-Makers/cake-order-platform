@@ -2,7 +2,8 @@ import axios, {AxiosError, AxiosResponse} from "axios";
 import {ErrorResponse, SuccessResponse} from "@/api/types";
 
 const serverApi = axios.create({
-  baseURL: "http://localhost:8080",
+  // NEXT_PUBLIC_ 접두사가 있어야 클라이언트 번들에 인라인됨. Vercel 등 호스팅에선 env 로 주입.
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080",
   withCredentials: true,
 });
 

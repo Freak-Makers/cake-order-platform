@@ -1,11 +1,31 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import {useEffect, useRef} from "react";
+import {Suspense, useEffect, useRef} from "react";
 import {getKakaoLogin} from "@/api/user.api";
 import {useAuth} from "@/context/AuthContext";
 
 export default function KakaoCallbackPage() {
+  // Next.js: useSearchParams 사용 페이지는 Suspense 로 감싸야 production 빌드에서 prerender 가능.
+  return (
+    <Suspense fallback={<CallbackFallback />}>
+      <KakaoCallbackInner />
+    </Suspense>
+  );
+}
+
+function CallbackFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4">
+      <div className="flex flex-col items-center justify-center text-center">
+        <p className="text-lg text-zinc-700">카카오 로그인을 처리 중입니다...</p>
+        <p className="mt-2 text-sm text-zinc-500">잠시만 기다려 주세요.</p>
+      </div>
+    </div>
+  );
+}
+
+function KakaoCallbackInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { login } = useAuth();

@@ -2,7 +2,8 @@ import {ErrorResponse, SuccessResponse} from "@/api/types";
 import { ApiError } from "@/api/api-error";
 import { showToast } from "@/lib/toast";
 
-const baseUrl = 'http://localhost:8080';
+// NEXT_PUBLIC_ 접두사가 있어야 클라이언트 번들에 인라인됨. Vercel 등 호스팅에선 env 로 주입.
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
 export async function fetchApi<T>(
   url: string,

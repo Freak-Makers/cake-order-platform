@@ -1,12 +1,29 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserLayout } from "@/components/layout/UserLayout";
 import { Button } from "@/components/ui/Button";
 import { failPayment } from "@/api/payment.api";
 
 export default function CheckoutFailPage() {
+  // Next.js: useSearchParams 사용 페이지는 Suspense 로 감싸야 production 빌드에서 prerender 가능.
+  return (
+    <Suspense
+      fallback={
+        <UserLayout>
+          <div className="mx-auto max-w-xl space-y-6 text-center">
+            <h1 className="text-xl font-bold text-red-600 sm:text-2xl">결제 실패 정보를 불러오는 중...</h1>
+          </div>
+        </UserLayout>
+      }
+    >
+      <CheckoutFailInner />
+    </Suspense>
+  );
+}
+
+function CheckoutFailInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
