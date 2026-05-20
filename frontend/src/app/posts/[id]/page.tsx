@@ -205,7 +205,7 @@ export default function PostDetailPage() {
 
         <div>
           <Button
-            variant={post.isLiked ? "default" : "outline"}
+            variant={post.isLiked ? "primary" : "outline"}
             onClick={handleLike}
             disabled={!isLoggedIn}
             className="gap-2"

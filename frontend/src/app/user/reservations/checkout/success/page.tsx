@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserLayout } from "@/components/layout/UserLayout";
 import { confirmPayment } from "@/api/payment.api";
@@ -9,6 +9,24 @@ import { confirmPayment } from "@/api/payment.api";
 const REDIRECT_DELAY_MS = 1500;
 
 export default function CheckoutSuccessPage() {
+  // Next.js: useSearchParams 사용 페이지는 Suspense 로 감싸야 production 빌드에서 prerender 가능.
+  return (
+    <Suspense
+      fallback={
+        <UserLayout>
+          <div className="mx-auto max-w-xl space-y-6 text-center">
+            <h1 className="text-2xl font-bold">결제 승인 중...</h1>
+            <p className="text-zinc-500">잠시만 기다려 주세요.</p>
+          </div>
+        </UserLayout>
+      }
+    >
+      <CheckoutSuccessInner />
+    </Suspense>
+  );
+}
+
+function CheckoutSuccessInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [done, setDone] = useState(false);
