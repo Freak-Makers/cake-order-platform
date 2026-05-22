@@ -9,7 +9,7 @@ cake-order-platform 의 결제 흐름을 시퀀스 + API + 상태 머신 기준�
 | 액터 | 역할 |
 |---|---|
 | 사용자 (Browser) | 예약 생성, 위젯 결제, 결과 페이지 진입 |
-| 프론트엔드 (Next.js, `frontend/`) | 체크아웃·success·fail 페이지, Toss SDK 위젯 렌더 |
+| 프론트엔드 (Nuxt 4 SPA, `frontend/`) | 체크아웃·success·fail 페이지, Toss SDK 위젯 렌더 |
 | 백엔드 (Spring Boot, `backend/`) | 검증, Toss confirm 호출, PaymentEntity 영속화, 예약 상태 전이 |
 | Toss Payments | 결제창 / 결제 승인 / 결제 정보 보관 (외부) |
 | 관리자 | 예약 확정(`CONFIRMED` 전이) — 결제 흐름 시작의 전제 조건 |
@@ -206,12 +206,12 @@ REFUNDED — 환불 (미구현)
 
 | 경로 | 파일 | 역할 |
 |---|---|---|
-| `/user/reservations` | `app/user/reservations/page.tsx` | 예약 목록. `CONFIRMED` 에 "결제하기" 버튼 |
-| `/user/reservations/[id]/checkout` | `app/user/reservations/[id]/checkout/page.tsx` | prepare → SDK 위젯 렌더 → requestPayment |
-| `/user/reservations/checkout/success` | `app/user/reservations/checkout/success/page.tsx` | Toss success 리다이렉트 → confirm 호출 |
-| `/user/reservations/checkout/fail` | `app/user/reservations/checkout/fail/page.tsx` | Toss fail 리다이렉트 → 화면 표시 + fail 기록 호출 |
+| `/user/reservations` | `app/pages/user/reservations/index.vue` | 예약 목록. `CONFIRMED` 에 "결제하기" 버튼 |
+| `/user/reservations/[id]/checkout` | `app/pages/user/reservations/[id]/checkout.vue` | prepare → SDK 위젯 렌더 → requestPayment |
+| `/user/reservations/checkout/success` | `app/pages/user/reservations/checkout/success.vue` | Toss success 리다이렉트 → confirm 호출 |
+| `/user/reservations/checkout/fail` | `app/pages/user/reservations/checkout/fail.vue` | Toss fail 리다이렉트 → 화면 표시 + fail 기록 호출 |
 
-### 6.2 API 클라이언트 (`src/api/payment.api.ts`)
+### 6.2 API 클라이언트 (`app/api/payment.api.ts`)
 
 ```ts
 preparePayment(reservationId): Promise<PaymentPrepareResponse>
@@ -243,7 +243,7 @@ await widgets.requestPayment({
 
 주의:
 - 순차 `await` (Promise.all 금지 — SDK 내부 상태 경쟁)
-- `useRef` 가드로 React 19 strict mode 의 effect 2번 실행 방지
+- 위젯 초기화는 `onMounted` 안에서 1회 (Vue 라 React strict mode 같은 effect 2번 실행 이슈 없음)
 - catch 시 `e.code/e.name/e.message` 를 화면에 노출 (디버깅용)
 
 ---
