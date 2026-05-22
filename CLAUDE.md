@@ -5,7 +5,7 @@ Claude Code(claude.ai/code)가 이 저장소에서 작업할 때 참고하는 �
 ## 구성
 
 - `backend/` — Spring Boot 3.5 + Kotlin 1.9 (Java 21)
-- `frontend/` — Next.js 16 + React 19 + TypeScript + Tailwind v4
+- `frontend/` — Nuxt 4 + Vue 3 + TypeScript + Tailwind v3 (SPA, `ssr: false`)
 - `API_SPEC.md` — 프론트/백 통신 명세. API 바뀌면 같이 수정.
 
 ## 실행
@@ -18,8 +18,8 @@ Claude Code(claude.ai/code)가 이 저장소에서 작업할 때 참고하는 �
 
 **Frontend** (`frontend/`)
 - 개발 서버: `npm run dev` (포트 3000)
-- 빌드/실행: `npm run build` / `npm run start`
-- 린트: `npm run lint`
+- 정적 SPA 빌드: `npm run generate` (결과물 `.output/public/`) / 미리보기: `npm run preview`
+- 환경변수: `NUXT_PUBLIC_API_BASE` (백엔드 베이스 URL, 기본 `http://localhost:8080`). `.env.example` 복사해 `.env` 로 사용.
 
 ## 백엔드 구조
 
@@ -86,26 +86,33 @@ JWT 단일, 무상태. `JwtSecurityContextFilter`가 `Authorization: Bearer ...`
 
 ## 프론트엔드 구조
 
-App Router (`src/app/`). 주요 경로: `/admin/*`, `/user/*`, `/oauth/kakao/callback`, `/login`, `/products`, `/orders`, `/dashboard`.
+Nuxt 4 SPA (`ssr: false`, `nuxt generate` 로 정적 빌드). 소스 루트는 `app/`, 파일 기반 라우팅(`app/pages/`). 주요 경로: `/admin/*`, `/user/*`, `/oauth/kakao/callback`, `/login`, `/products`, `/posts`, `/dashboard`.
 
-### API 레이어 (`src/api/`)
+- Vue 3 + `<script setup>` + TypeScript
+- Pinia (`@pinia/nuxt`) — 인증·장바구니 상태
+- Tailwind CSS v3 (`@nuxtjs/tailwindcss`), 아이콘 `lucide-vue-next`, 결제 `@tosspayments/tosspayments-sdk`
+- Nuxt `layouts/` 대신 `DashboardLayout`/`UserLayout` 컴포넌트로 페이지를 감쌈.
+- `nuxt.config.ts` 의 `components: [{ pathPrefix: false }]` — 컴포넌트는 디렉터리 접두사 없이 이름 그대로 사용 (`components/ui/Button.vue` → `<Button>`).
 
-- `fetch.server.ts` — `fetchApi<T>()`가 `http://localhost:8080` 호출, **`SuccessResponse<T>`를 풀어 `data`만 반환**. 즉 `await getMyOrders()`의 결과는 `Order[]`.
-- `api-client.ts` — `fetchApi` 위에 `{ get, post, put, delete }` 래퍼. 호출은 이걸로.
-- `axios.server.ts` — axios 인스턴스(인터셉터에서 `.data` 언래핑). 파일명 `.server.ts`지만 둘 다 브라우저에서 실행됨 (Next 서버 컴포넌트 표시 아님).
+### API 레이어 (`app/api/`)
+
+- `fetch.ts` — `fetchApi<T>()`가 `useRuntimeConfig().public.apiBase`(기본 `http://localhost:8080`) 로 호출, **`SuccessResponse<T>`를 풀어 `data`만 반환**. 즉 `await getMyOrders()`의 결과는 `Order[]`. 매 요청마다 `localStorage.accessToken` 을 읽어 `Authorization: Bearer ...` 자동 첨부 (호출자가 명시한 헤더가 우선). 에러는 토스트로 알리고 `ApiError` throw.
+- `api-client.ts` — `fetchApi` 위에 `{ get, post, put, delete }` 래퍼. 도메인별 호출은 이걸로.
+- `api-error.ts` — `ApiError` 클래스 (`code`/`status`/`details`).
 - `types.ts` — 백엔드와 맞춘 공용 타입. `API_SPEC.md` / Kotlin DTO와 동기화 유지.
 - `*.api.ts` — 도메인별 타입드 호출 함수.
 
-### 상태
+### 상태 (Pinia, `app/stores/`)
 
-- `AuthContext` (`src/context/AuthContext.tsx`) — JWT를 `localStorage`의 `accessToken` 키에 저장. `isLoggedIn`/`login`/`logout` 제공. `fetch.server.ts`/`axios.server.ts` 가 매 요청마다 `localStorage.accessToken` 을 읽어 `Authorization: Bearer ...` 를 자동 첨부 (호출자가 명시한 헤더가 있으면 그 쪽 우선, 토큰 없거나 SSR 컨텍스트면 헤더 생략).
-- `CartProvider`도 `AuthProvider`와 함께 `app/layout.tsx`에서 감쌈.
+- `auth.ts` (`useAuthStore`) — JWT를 `localStorage`의 `accessToken` 키에 저장 (`userRole`/`userInfo` 도 함께). `isLoggedIn`/`login`/`logout`/`init` 제공. `init()` 은 새 브라우저 세션의 첫 진입이면 토큰을 비우고 시작 (`sessionStorage` 의 `authSessionStarted` 키로 판정).
+- `cart.ts` (`useCartStore`) — 장바구니 상태.
+- `app/plugins/init.client.ts` 가 앱 마운트 전에 `auth`/`cart` 스토어를 `localStorage` 에서 1회 복원.
 
-### Next.js 버전 주의 (`frontend/AGENTS.md`)
+### Nuxt 4 버전 주의
 
-> 알고 있는 Next.js가 아님. 이 버전은 API/관례/파일 구조에 깨지는 변경이 있을 수 있음. 코드 짜기 전에 `node_modules/next/dist/docs/`를 먼저 읽을 것.
+> 알고 있는 Nuxt가 아닐 수 있음. 이 버전은 API/관례/파일 구조에 깨지는 변경이 있을 수 있음. 코드 짜기 전에 설치된 버전(`node_modules/nuxt/`, `frontend/README.md`)을 먼저 확인할 것.
 
-App Router 관련은 외워둔 지식 말고 설치된 문서 기준으로 확인.
+파일 기반 라우팅·`#imports`·`defineNuxtPlugin`·`runtimeConfig` 등은 외워둔 지식 말고 설치된 버전 기준으로 확인.
 
 ### 반응형 디자인 (중요)
 
@@ -117,8 +124,8 @@ App Router 관련은 외워둔 지식 말고 설치된 문서 기준으로 확�
 - `lg:` ≥ 1024px (데스크탑) — 사이드바가 펼쳐지는 분기점
 - `xl:` ≥ 1280px
 
-**레이아웃 컴포넌트 (`src/components/layout/`):**
-- `DashboardLayout` / `Sidebar` — `lg` 미만에서는 사이드바가 햄버거 메뉴로 변환되는 drawer. `Sidebar` 는 `isOpen`/`onClose` props 로 제어.
+**레이아웃 컴포넌트 (`app/components/layout/`):**
+- `DashboardLayout` / `Sidebar` — `lg` 미만에서는 사이드바가 햄버거 메뉴로 변환되는 drawer. `Sidebar` 는 `isOpen` prop + `close` 이벤트로 제어.
 - `UserLayout` — `md` 미만에서 상단 네비게이션이 햄버거 drawer 로 전환. 장바구니 drawer 는 모든 너비에서 우측 슬라이드.
 
 **페이지 작성 시 체크리스트:**
@@ -127,7 +134,7 @@ App Router 관련은 외워둔 지식 말고 설치된 문서 기준으로 확�
 - 버튼 그룹: 모바일은 풀 폭 (`w-full`), `sm:` 이상은 `sm:w-auto` / `sm:flex-1` 로 회복.
 - 좌우 패딩: 페이지 컨테이너는 `px-4 sm:px-6` 정도로 모바일에서는 더 좁게.
 - 카드 패딩: `p-4 sm:p-6` 처럼 단계 조정. 큰 패딩은 모바일에서 콘텐츠 영역을 갉아먹음.
-- 표(Table): 가로 스크롤 허용 (`<div className="overflow-x-auto">` 로 감쌈). 모바일에서 잘리지 않게.
+- 표(Table): 가로 스크롤 허용 (`<div class="overflow-x-auto">` 로 감쌈). 모바일에서 잘리지 않게.
 - 그리드: 기본 1열, `sm:grid-cols-2`, `lg:grid-cols-3/4` 로 확대. `gap` 도 모바일에서 더 작게 (`gap-4 sm:gap-6`).
 
 **모달:**

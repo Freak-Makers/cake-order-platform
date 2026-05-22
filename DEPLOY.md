@@ -10,11 +10,10 @@
 
 | 항목 | 위치 | 비고 |
 | --- | --- | --- |
-| 백엔드 URL env 화 | `frontend/src/api/fetch.server.ts`, `frontend/src/api/axios.server.ts` | `process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"`. 로컬 폴백 유지. |
-| 환경변수 템플릿 | `frontend/.env.example` (커밋), `frontend/.env.local` (gitignored) | 키는 `NEXT_PUBLIC_API_BASE_URL` 하나. |
+| 백엔드 URL env 화 | `frontend/nuxt.config.ts` (`runtimeConfig.public.apiBase`), `frontend/app/api/fetch.ts` | `useRuntimeConfig().public.apiBase` 사용. 기본값 `http://localhost:8080` 로컬 폴백 유지. |
+| 환경변수 템플릿 | `frontend/.env.example` (커밋), `frontend/.env` (gitignored) | 키는 `NUXT_PUBLIC_API_BASE` 하나. |
 | `.gitignore` 화이트리스트 | `frontend/.gitignore` | `.env*` 차단 + `!.env.example` 예외. |
-| Suspense 래핑 | `frontend/src/app/oauth/kakao/callback/page.tsx`, `frontend/src/app/user/reservations/checkout/{success,fail}/page.tsx` | `useSearchParams()` 페이지는 production prerender 시 Suspense boundary 필수. |
-| 메타데이터 | `frontend/src/app/layout.tsx` | title/description 프로젝트 명으로 교체. |
+| 메타데이터 | `frontend/nuxt.config.ts` (`app.head`) | title/description 프로젝트 명으로 설정됨. |
 
 ### 1.2 환경 변수 (Vercel UI)
 
@@ -22,7 +21,7 @@ Vercel Dashboard → 프로젝트 → Settings → Environment Variables 에서 
 
 | 키 | 값 | 노출 환경 | 비고 |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_BASE_URL` | 백엔드 프로덕션 도메인 (예: `https://api.cake-order.example.com`) | Production / Preview / Development | `NEXT_PUBLIC_` 접두사가 있어야 클라이언트 번들에 인라인됨. 미설정 시 런타임에 `localhost:8080` 으로 폴백 → 404 만 남는다. |
+| `NUXT_PUBLIC_API_BASE` | 백엔드 프로덕션 도메인 (예: `https://api.cake-order.example.com`) | Production / Preview / Development | `NUXT_PUBLIC_` 접두사 환경변수가 빌드 시 `runtimeConfig.public.apiBase` 를 덮어씀. SPA 라 빌드 타임에 번들로 인라인됨. 미설정 시 런타임에 `localhost:8080` 으로 폴백 → 404 만 남는다. |
 
 > URL 확정 전이라도 placeholder 라도 넣어두면 “실수로 localhost 호출” 같은 혼선이 줄어든다.
 
@@ -30,24 +29,23 @@ Vercel Dashboard → 프로젝트 → Settings → Environment Variables 에서 
 
 1. GitHub 저장소 연결.
 2. **Root Directory** — `frontend` 로 지정. 모노레포 구조라 필수.
-3. **Framework Preset** — Next.js (자동 인식).
-4. **Build Command / Output Directory** — Next 기본값 (`next build` / `.next`). 별도 입력 불필요.
-5. **Node.js Version** — `package.json` 에 `engines` 미명시 → Vercel 기본 (Node 22 LTS). Next 16 호환.
+3. **Framework Preset** — Nuxt.js (자동 인식).
+4. **Build Command / Output Directory** — Nuxt 기본값. Vercel 의 Nuxt 프리셋이 `nuxt build` 결과(`.output`)를 자동 인식하므로 별도 입력 불필요.
+5. **Node.js Version** — `package.json` 에 `engines` 미명시 → Vercel 기본 (Node 22 LTS). Nuxt 4 호환.
 6. (선택) **Custom Domain** 연결.
 
 ### 1.4 로컬 검증
 
 ```bash
 cd frontend
-cp .env.example .env.local      # 이미 있으면 스킵
+cp .env.example .env            # 이미 있으면 스킵
 npm run dev                     # 로컬 백엔드(8080) 와 연결
 npm run build                   # production 빌드 성공해야 Vercel 도 통과
-npx tsc --noEmit                # 0 에러 유지
 ```
 
 ### 1.5 배포 후 점검 체크리스트
 
-- [ ] Vercel 빌드 로그에 에러 없음 (18개 라우트 생성).
+- [ ] Vercel 빌드 로그에 에러 없음.
 - [ ] 배포된 도메인에서 랜딩 페이지 정상 노출.
 - [ ] DevTools Network 탭에서 API 호출 URL 이 `NEXT_PUBLIC_API_BASE_URL` 값으로 나가는지 확인.
 - [ ] 카카오 로그인 → OAuth 콜백 → `/user/products` 정상 진입 (백엔드 측 redirect URI 갱신 후).
@@ -96,7 +94,7 @@ production 에서는 Toss 페이먼츠 시크릿 키 / DB 접속 정보 / JWT �
 ## 3. 알려진 한계 (배포 후 알아둘 것)
 
 - **JWT 저장 방식**: `localStorage.accessToken`. HTTPS 환경에서 동작하지만, XSS 노출 위험. 추후 httpOnly 쿠키 + refresh 흐름으로 강화 가능.
-- **세션 만료 처리**: 새 브라우저 세션 시작 시 토큰을 강제 클리어 (`AuthContext` 의 `FRESH_SESSION_KEY`). 의도된 동작이지만 UX 측면에선 호불호 갈림.
+- **세션 만료 처리**: 새 브라우저 세션 시작 시 토큰을 강제 클리어 (`app/stores/auth.ts` 의 `authSessionStarted` 키). 의도된 동작이지만 UX 측면에선 호불호 갈림.
 - **관리자 로그인 더미**: `AdminLoginService` 는 이메일/비밀번호 검증 없이 `userId=1` JWT 발급. production 배포 전 실제 인증으로 교체 필요.
 - **`SecurityConfig.filterChain` 자체가 `@Profile("local", "test")` 전용**: production 프로필용 보안 설정이 아직 없음. 백엔드 배포 시 인증/인가 정책을 명시적으로 작성해야 함.
 - **다른 페이지의 마운트-즉시-fetch 401 노출**: `/dashboard` 만 가드 적용. `/admin/*`, `/user/reservations`, `/user/favorites` 등은 토큰 없이 진입 시 토스트로 401 이 노출될 수 있음. 별도 작업으로 정리 예정.
@@ -110,8 +108,8 @@ production 에서는 Toss 페이먼츠 시크릿 키 / DB 접속 정보 / JWT �
 cd frontend
 npm install
 npm run dev              # http://localhost:3000
-npm run build            # production 빌드 확인
-npx tsc --noEmit         # 타입 체크
+npm run build            # production 빌드 확인 (.output)
+npm run generate         # 정적 SPA 빌드 (.output/public)
 
 # 백엔드 로컬 실행
 cd backend

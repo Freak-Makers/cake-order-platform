@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# frontend — Cake Order Platform (Nuxt 4)
 
-## Getting Started
+`frontend/` (Next.js) 을 **Nuxt 4 로 1:1 포팅**한 프로젝트. SPA(클라이언트 전용) 로 동작하며 정적 빌드만 사용한다.
 
-First, run the development server:
+## 기술 스택
+
+- Nuxt 4 (`ssr: false` — SPA)
+- Vue 3 + `<script setup>` + TypeScript
+- Pinia (`@pinia/nuxt`) — 인증·장바구니 상태
+- Tailwind CSS v3 (`@nuxtjs/tailwindcss`)
+- `lucide-vue-next` — 아이콘
+- `@tosspayments/tosspayments-sdk` — 결제 위젯
+
+## 실행
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # 개발 서버 (포트 3000)
+npm run generate   # 정적 SPA 빌드 → .output/public
+npm run preview    # 빌드 결과 미리보기
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm run generate` 결과물 `.output/public/` 를 정적 호스팅에 올리면 된다.
+SPA 이므로 모든 경로를 `index.html`(또는 `200.html`) 로 폴백하도록 호스팅을 설정해야 한다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 환경 변수
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `NUXT_PUBLIC_API_BASE` | `http://localhost:8080` | 백엔드 베이스 URL |
 
-## Learn More
+`.env.example` 를 복사해 `.env` 로 사용한다.
 
-To learn more about Next.js, take a look at the following resources:
+## 구조
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/
+  api/         — 백엔드 호출 (fetch 래퍼 + 도메인별 *.api.ts + 공용 타입)
+  components/  — UI(Button/Card), layout(DashboardLayout/UserLayout/Sidebar), 모달
+  pages/       — 파일 기반 라우팅 (Next.js app/ 경로와 1:1 대응)
+  plugins/     — init.client.ts (앱 시작 시 인증/장바구니 복원)
+  stores/      — Pinia (auth, cart)
+  utils/       — format(cn, formatPrice), toast
+  assets/css/  — tailwind.css (Tailwind 지시문 + 전역 스타일)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+레이아웃은 Nuxt `layouts/` 대신 `DashboardLayout` / `UserLayout` 컴포넌트로 페이지를 감싼다 (원본 Next.js 구조와 동일).
