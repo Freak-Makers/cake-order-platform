@@ -1,4 +1,4 @@
-# frontend2 — Cake Order Platform (Nuxt 4)
+# frontend — Cake Order Platform (Nuxt 4)
 
 `frontend/` (Next.js) 을 **Nuxt 4 로 1:1 포팅**한 프로젝트. SPA(클라이언트 전용) 로 동작하며 정적 빌드만 사용한다.
 
