@@ -24,7 +24,7 @@ import java.time.LocalTime
 
 private val log = KotlinLogging.logger {}
 
-@Profile("local", "test")
+@Profile("local", "dev")
 @Configuration
 class DataInitializer(
     private val productRepository: ProductRepository,
