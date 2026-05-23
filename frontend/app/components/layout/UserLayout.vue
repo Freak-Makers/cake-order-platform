@@ -5,16 +5,19 @@ import { Cake, ShoppingCart, User, LogOut, X, Trash2, Plus, Minus, Menu } from "
 import { cn } from "~/utils/format";
 import { useAuthStore } from "~/stores/auth";
 import { useCartStore } from "~/stores/cart";
+import { useChatStore } from "~/stores/chat";
 
 const NAV_ITEMS = [
   { href: "/user/products", label: "상품 목록" },
   { href: "/user/reservations", label: "내 예약" },
   { href: "/user/favorites", label: "내 찜" },
   { href: "/posts", label: "홍보글" },
+  { href: "/user/chat", label: "문의하기" },
 ];
 
 const auth = useAuthStore();
 const cart = useCartStore();
+const chat = useChatStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -67,9 +70,15 @@ function hideImage(e: Event) {
             v-for="item in NAV_ITEMS"
             :key="item.href"
             :to="item.href"
-            class="text-sm font-medium text-zinc-600 hover:text-pink-600"
+            class="relative text-sm font-medium text-zinc-600 hover:text-pink-600"
           >
             {{ item.label }}
+            <span
+              v-if="item.href === '/user/chat' && auth.isLoggedIn && chat.unreadTotal > 0"
+              class="absolute -right-3 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white"
+            >
+              {{ chat.unreadTotal }}
+            </span>
           </NuxtLink>
         </nav>
 
@@ -158,14 +167,20 @@ function hideImage(e: Event) {
             :key="item.href"
             :to="item.href"
             :class="cn(
-              'rounded-lg px-4 py-3 text-sm font-medium transition-colors',
+              'flex items-center justify-between rounded-lg px-4 py-3 text-sm font-medium transition-colors',
               route.path === item.href || route.path.startsWith(item.href + '/')
                 ? 'bg-pink-50 text-pink-600'
                 : 'text-zinc-700 hover:bg-zinc-50',
             )"
             @click="isMenuOpen = false"
           >
-            {{ item.label }}
+            <span>{{ item.label }}</span>
+            <span
+              v-if="item.href === '/user/chat' && auth.isLoggedIn && chat.unreadTotal > 0"
+              class="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1.5 text-[11px] font-bold text-white"
+            >
+              {{ chat.unreadTotal }}
+            </span>
           </NuxtLink>
         </nav>
       </div>

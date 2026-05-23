@@ -75,6 +75,7 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.GET, "/api/v1/reservation-slots").permitAll()
                     .requestMatchers("/api/v1/users/login/kakao/**").permitAll()
                     .requestMatchers("/api/v1/admin/users/login/**").permitAll()
+                    .requestMatchers("/ws/**").permitAll()
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             }

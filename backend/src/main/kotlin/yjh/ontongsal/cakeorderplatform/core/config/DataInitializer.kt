@@ -4,6 +4,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ChatMessageEntity
+import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ChatRoomEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.CommentEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.PostEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ProductEntity
@@ -11,8 +13,11 @@ import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ProductStatus
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ReservationEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ReservationSlotEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ReservationStatus
+import yjh.ontongsal.cakeorderplatform.core.persistence.entity.SenderType
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.SocialProvider
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.UserEntity
+import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ChatMessageRepository
+import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ChatRoomRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.CommentRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.PostRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ProductRepository
@@ -33,6 +38,8 @@ class DataInitializer(
     private val userRepository: UserRepository,
     private val reservationRepository: ReservationRepository,
     private val commentRepository: CommentRepository,
+    private val chatRoomRepository: ChatRoomRepository,
+    private val chatMessageRepository: ChatMessageRepository,
 ) : CommandLineRunner {
 
     override fun run(vararg args: String?) {
@@ -42,6 +49,7 @@ class DataInitializer(
         seedUsers()
         seedReservations()
         seedComments()
+        seedChats()
     }
 
     private fun seedProducts() {
@@ -290,5 +298,54 @@ class DataInitializer(
         val saved = commentRepository.findAll().sortedBy { it.id }
         log.info { "[seed] comments createdAt rows (${saved.size}):" }
         saved.forEach { log.info { "  id=${it.id} postId=${it.postId} createdAt=${it.createdAt}" } }
+    }
+
+    private fun seedChats() {
+        if (chatRoomRepository.count() > 0L) return
+        val users = userRepository.findAll().sortedBy { it.id }
+        if (users.size < 3) return
+
+        // AdminLoginService 가 항상 userId=1 JWT 를 발급하므로 첫 번째 시드 사용자를 admin 으로 매핑.
+        val adminId = users[0].id
+        val customer1 = users[1] // 김영희 — 대화 진행
+        val customer2 = users[2] // 이철수 — 사장님 미확인 메시지
+
+        // 방 1: 정상 대화 (3건). 결과: customerUnread=1, adminUnread=2
+        val room1 = chatRoomRepository.save(
+            ChatRoomEntity(customerId = customer1.id, adminId = adminId)
+        )
+        sendSeed(room1.id, customer1.id, SenderType.CUSTOMER, "안녕하세요, 주문 가능한가요?")
+        sendSeed(room1.id, adminId, SenderType.ADMIN, "네 가능합니다 :)")
+        val last1 = sendSeed(room1.id, customer1.id, SenderType.CUSTOMER, "감사합니다, 내일 픽업 예약할게요.")
+        room1.lastMessageAt = last1.createdAt
+        room1.lastMessagePreview = last1.content
+        room1.adminUnreadCount = 2
+        room1.customerUnreadCount = 1
+        chatRoomRepository.save(room1)
+
+        // 방 2: 고객만 문의, 사장님 미확인.
+        val room2 = chatRoomRepository.save(
+            ChatRoomEntity(customerId = customer2.id, adminId = adminId)
+        )
+        val last2 = sendSeed(room2.id, customer2.id, SenderType.CUSTOMER, "케이크 픽업 시간 변경 문의드려요.")
+        room2.lastMessageAt = last2.createdAt
+        room2.lastMessagePreview = last2.content
+        room2.adminUnreadCount = 1
+        chatRoomRepository.save(room2)
+
+        log.info { "[seed] chat rooms inserted: 2" }
+    }
+
+    private fun sendSeed(roomId: Long, senderId: Long, senderType: SenderType, content: String): ChatMessageEntity {
+        val saved = chatMessageRepository.save(
+            ChatMessageEntity(
+                chatRoomId = roomId,
+                senderId = senderId,
+                senderType = senderType,
+                content = content,
+            )
+        )
+        Thread.sleep(10)
+        return saved
     }
 }
