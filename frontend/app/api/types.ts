@@ -246,3 +246,38 @@ export interface ChatPushMessage {
   content: string;
   sentAt: string;
 }
+
+// Notification Types
+export type NotificationType =
+  | "RESERVATION_CREATED"
+  | "PAYMENT_COMPLETED"
+  | "RESERVATION_CANCELLED";
+
+// `Notification` 은 브라우저 전역 타입과 충돌하므로 AppNotification 으로 명명.
+export interface AppNotification {
+  id: number;
+  type: NotificationType;
+  title: string;
+  body: string;
+  linkUrl: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminNotificationsResponse {
+  items: AppNotification[];
+  total: number;
+  offset: number;
+  limit: number;
+  unreadCount: number;
+}
+
+// STOMP push 페이로드
+export interface NotificationPushMessage {
+  id: number;
+  type: NotificationType;
+  title: string;
+  body: string;
+  linkUrl: string | null;
+  createdAt: string;
+}

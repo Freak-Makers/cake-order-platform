@@ -1,6 +1,7 @@
 import { watch } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { useChatStore } from "~/stores/chat";
+import { useNotificationStore } from "~/stores/notification";
 
 /**
  * 로그인 상태가 true 가 되면 STOMP CONNECT, false 가 되면 DISCONNECT + reset.
@@ -11,15 +12,17 @@ import { useChatStore } from "~/stores/chat";
 export default defineNuxtPlugin(() => {
   const auth = useAuthStore();
   const chat = useChatStore();
+  const notification = useNotificationStore();
 
   watch(
     () => auth.isLoggedIn,
     (loggedIn) => {
       if (loggedIn) {
         chat.connect();
-        // 관리자라면 채팅방 목록을 미리 받아두면 메뉴 badge 가 정확해진다.
         if (auth.role === "ADMIN") {
+          // 사이드바·헤더 badge 가 정확해지도록 채팅방 + 알림 목록을 미리 채움.
           void chat.loadAdminRooms().catch(() => undefined);
+          void notification.load().catch(() => undefined);
         } else {
           void chat.loadMyRoomAndMessages().catch(() => undefined);
         }

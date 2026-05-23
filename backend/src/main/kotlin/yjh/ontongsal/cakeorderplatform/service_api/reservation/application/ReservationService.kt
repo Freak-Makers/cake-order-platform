@@ -1,14 +1,18 @@
 package yjh.ontongsal.cakeorderplatform.service_api.reservation.application
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import yjh.ontongsal.cakeorderplatform.core.exception.AppException
 import yjh.ontongsal.cakeorderplatform.core.exception.ErrorCode
+import yjh.ontongsal.cakeorderplatform.core.notification.application.NotifyEvent
+import yjh.ontongsal.cakeorderplatform.core.persistence.entity.NotificationType
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ReservationEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ReservationStatus
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ProductRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ReservationRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ReservationSlotRepository
+import yjh.ontongsal.cakeorderplatform.core.persistence.repository.UserRepository
 import yjh.ontongsal.cakeorderplatform.service_api.reservation.presentation.ReservationCreateRequest
 import yjh.ontongsal.cakeorderplatform.service_api.reservation.presentation.ReservationResponse
 import yjh.ontongsal.cakeorderplatform.service_api.reservation.presentation.ReservationSlotResponse
@@ -17,11 +21,16 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+// AdminLoginService 가 항상 userId=1 로 JWT 를 발급하므로 알림 수신자는 1L 고정.
+private const val ADMIN_USER_ID: Long = 1L
+
 @Service
 class ReservationService(
     private val reservationRepository: ReservationRepository,
     private val reservationSlotRepository: ReservationSlotRepository,
     private val productRepository: ProductRepository,
+    private val userRepository: UserRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     @Transactional(readOnly = true)
     fun getAvailableSlots(): List<ReservationSlotResponse> {
@@ -57,6 +66,17 @@ class ReservationService(
                 status = ReservationStatus.REQUESTED,
             )
         )
+
+        val customerNickname = userRepository.findById(userId).map { it.nickname }.orElse("고객")
+        eventPublisher.publishEvent(
+            NotifyEvent(
+                recipientUserId = ADMIN_USER_ID,
+                type = NotificationType.RESERVATION_CREATED,
+                title = "새 예약 요청",
+                body = "${customerNickname}님이 ${product.name} ${request.quantity}개 예약을 요청했습니다.",
+                linkUrl = "/admin/reservations",
+            )
+        )
         return ReservationResponse.from(saved, product.name, slot.startAt)
     }
 
@@ -81,6 +101,18 @@ class ReservationService(
             )
         }
         reservation.status = ReservationStatus.CANCELLED
+
+        val customerNickname = userRepository.findById(reservation.userId).map { it.nickname }.orElse("고객")
+        val productName = productRepository.findById(reservation.productId).map { it.name }.orElse("상품")
+        eventPublisher.publishEvent(
+            NotifyEvent(
+                recipientUserId = ADMIN_USER_ID,
+                type = NotificationType.RESERVATION_CANCELLED,
+                title = "예약 취소",
+                body = "${customerNickname}님이 ${productName} 예약을 취소했습니다.",
+                linkUrl = "/admin/reservations",
+            )
+        )
         return toResponse(reservation)
     }
 

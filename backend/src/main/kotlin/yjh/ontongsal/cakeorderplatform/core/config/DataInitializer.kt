@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Profile
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ChatMessageEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ChatRoomEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.CommentEntity
+import yjh.ontongsal.cakeorderplatform.core.persistence.entity.NotificationEntity
+import yjh.ontongsal.cakeorderplatform.core.persistence.entity.NotificationType
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.PostEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ProductEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ProductStatus
@@ -19,6 +21,7 @@ import yjh.ontongsal.cakeorderplatform.core.persistence.entity.UserEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ChatMessageRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ChatRoomRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.CommentRepository
+import yjh.ontongsal.cakeorderplatform.core.persistence.repository.NotificationRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.PostRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ProductRepository
 import yjh.ontongsal.cakeorderplatform.core.persistence.repository.ReservationRepository
@@ -40,6 +43,7 @@ class DataInitializer(
     private val commentRepository: CommentRepository,
     private val chatRoomRepository: ChatRoomRepository,
     private val chatMessageRepository: ChatMessageRepository,
+    private val notificationRepository: NotificationRepository,
 ) : CommandLineRunner {
 
     override fun run(vararg args: String?) {
@@ -50,6 +54,7 @@ class DataInitializer(
         seedReservations()
         seedComments()
         seedChats()
+        seedNotifications()
     }
 
     private fun seedProducts() {
@@ -347,5 +352,44 @@ class DataInitializer(
         )
         Thread.sleep(10)
         return saved
+    }
+
+    private fun seedNotifications() {
+        if (notificationRepository.count() > 0L) return
+        // admin = 첫 시드 사용자(=AdminLoginService 의 더미 userId=1)
+        val users = userRepository.findAll().sortedBy { it.id }
+        if (users.size < 3) return
+        val adminId = users[0].id
+        val customer1 = users[1] // 김영희
+        val customer2 = users[2] // 이철수
+
+        val seeds = listOf(
+            NotificationEntity(
+                recipientUserId = adminId,
+                type = NotificationType.RESERVATION_CREATED,
+                title = "새 예약 요청",
+                body = "${customer1.nickname}님이 생딸기 생크림 케이크 1개 예약을 요청했습니다.",
+                linkUrl = "/admin/reservations",
+            ),
+            NotificationEntity(
+                recipientUserId = adminId,
+                type = NotificationType.RESERVATION_CREATED,
+                title = "새 예약 요청",
+                body = "${customer2.nickname}님이 초코 가나슈 케이크 1개 예약을 요청했습니다.",
+                linkUrl = "/admin/reservations",
+            ),
+            NotificationEntity(
+                recipientUserId = adminId,
+                type = NotificationType.PAYMENT_COMPLETED,
+                title = "결제 완료",
+                body = "${customer1.nickname}님이 블루베리 치즈 케이크 결제를 완료했습니다. (₩38,000)",
+                linkUrl = "/admin/reservations",
+            ),
+        )
+        seeds.forEach {
+            notificationRepository.save(it)
+            Thread.sleep(10)
+        }
+        log.info { "[seed] admin notifications inserted: ${seeds.size}" }
     }
 }
