@@ -703,3 +703,153 @@ PRD 의 "오늘의 예약 / 처리 대기 / 누적 고객 수 / 누적 매출액
   - `pendingReservationCount`: `status = REQUESTED` 인 예약 수
   - `totalCustomerCount`: `PaymentStatus = PAID` 인 결제를 1건 이상 보유한 고유 `userId` 수
   - `totalRevenue`: `PaymentStatus = PAID` 인 결제의 `amount` 합 (원)
+
+---
+
+## 10. 1:1 채팅 API (Chat)
+
+고객(customer) ↔ 관리자(사장님) 간 1:1 실시간 채팅. 메시지는 DB에 영구 저장되어 히스토리 조회가 가능하며, 신규 메시지는 STOMP 로 실시간 푸시된다.
+
+### 10.1 공통 모델
+
+`ChatRoom` (고객용):
+```json
+{
+  "id": 1,
+  "customerId": 2,
+  "adminId": 1,
+  "lastMessageAt": "2026-05-23T14:32:10",
+  "lastMessagePreview": "감사합니다, 내일 픽업할게요.",
+  "unreadCount": 0,
+  "createdAt": "2026-05-23T10:00:00"
+}
+```
+
+`AdminChatRoom` (관리자용) — `ChatRoom` + 고객 정보:
+```json
+{
+  "id": 1,
+  "customerId": 2,
+  "customerNickname": "김영희",
+  "customerProfileImageUrl": null,
+  "adminId": 1,
+  "lastMessageAt": "2026-05-23T14:32:10",
+  "lastMessagePreview": "감사합니다, 내일 픽업할게요.",
+  "unreadCount": 2,
+  "createdAt": "2026-05-23T10:00:00"
+}
+```
+
+`ChatMessage`:
+```json
+{
+  "id": 17,
+  "roomId": 1,
+  "senderId": 2,
+  "senderType": "CUSTOMER",
+  "content": "안녕하세요!",
+  "sentAt": "2026-05-23T14:30:00"
+}
+```
+
+`senderType`: `"CUSTOMER" | "ADMIN"`.
+
+### 10.2 내 채팅방 조회/생성 (고객)
+- **Method**: `GET`
+- **URL**: `/api/v1/chat/room`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **동작**: 본인의 채팅방을 반환. 없으면 자동 생성 후 반환 (`adminId` 는 단일 관리자(=1) 가정).
+- **Response Data**: `ChatRoom`
+
+### 10.3 메시지 히스토리 (고객)
+- **Method**: `GET`
+- **URL**: `/api/v1/chat/rooms/{id}/messages?offset=0&limit=50`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **쿼리**: `offset` (0-based, `limit` 배수로 자동 보정), `limit` (1~100, 기본 20)
+- **Response Data**:
+  ```json
+  {
+    "items": [/* ChatMessage[] — createdAt desc, id desc */],
+    "total": 23,
+    "offset": 0,
+    "limit": 50
+  }
+  ```
+- **에러**: `1900 CHAT_ROOM_NOT_FOUND`, `1901 CHAT_ROOM_FORBIDDEN`
+
+### 10.4 안 읽음 카운트 리셋 (고객)
+- **Method**: `POST`
+- **URL**: `/api/v1/chat/rooms/{id}/read`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **동작**: 해당 방의 `customerUnreadCount` 를 0 으로.
+- **Response Data**: 없음 (200 OK)
+
+### 10.5 채팅방 목록 (관리자)
+- **Method**: `GET`
+- **URL**: `/api/v1/admin/chat/rooms?offset=0&limit=20`
+- **Header**: `Authorization: Bearer {accessToken}` (role = ADMIN)
+- **정렬**: 안 읽음(`adminUnreadCount > 0`) 우선 → `lastMessageAt desc` → `id desc`
+- **Response Data**:
+  ```json
+  {
+    "items": [/* AdminChatRoom[] */],
+    "total": 2,
+    "offset": 0,
+    "limit": 20
+  }
+  ```
+
+### 10.6 메시지 히스토리 (관리자)
+- **Method**: `GET`
+- **URL**: `/api/v1/admin/chat/rooms/{id}/messages?offset=0&limit=50`
+- **Header**: `Authorization: Bearer {accessToken}` (role = ADMIN)
+- **Response Data**: 10.3 과 동일한 `{items, total, offset, limit}`. 해당 admin 의 방이 아니면 `1901 CHAT_ROOM_FORBIDDEN`.
+
+### 10.7 안 읽음 카운트 리셋 (관리자)
+- **Method**: `POST`
+- **URL**: `/api/v1/admin/chat/rooms/{id}/read`
+- **Header**: `Authorization: Bearer {accessToken}` (role = ADMIN)
+- **동작**: 해당 방의 `adminUnreadCount` 를 0 으로.
+
+### 10.8 WebSocket / STOMP
+
+- **Endpoint**: `ws://{host}/ws` (SockJS 미사용, 네이티브 WebSocket + STOMP 1.2)
+- **CONNECT 인증**: STOMP CONNECT 프레임의 `Authorization` native header 에 `Bearer {accessToken}` 첨부. 검증 실패 시 ERROR 프레임 + 연결 종료.
+- **브로커**: in-memory SimpleBroker. user destination prefix `/user`, application prefix `/app`.
+
+#### 10.8.1 메시지 송신
+- **destination**: `/app/chat.send`
+- **payload**:
+  ```json
+  { "roomId": 1, "content": "안녕하세요" }
+  ```
+- **동작**: 서버가 sender 의 JWT role 로 `CUSTOMER`/`ADMIN` 판정 → 방 검증(본인 참가 여부) → 메시지 영속화 + 방 갱신 → 상대방에게 푸시. **본인에게는 echo 되지 않음** (클라이언트가 로컬에서 즉시 표시).
+- **검증 에러** (메시지 송신 거부, 서버 로그):
+  - 빈 content → `1902 CHAT_MESSAGE_EMPTY`
+  - 2000자 초과 → `1903 CHAT_MESSAGE_TOO_LONG`
+  - roomId 가 sender 의 방이 아님 → `1901 CHAT_ROOM_FORBIDDEN`
+
+#### 10.8.2 메시지 수신 (구독)
+- **destination**: `/user/queue/messages` (Spring 이 사용자별로 `/user/{userId}/queue/messages` 로 라우팅)
+- **payload** (`ChatPushMessage`):
+  ```json
+  {
+    "roomId": 1,
+    "messageId": 17,
+    "senderId": 1,
+    "senderType": "ADMIN",
+    "content": "네 가능합니다 :)",
+    "sentAt": "2026-05-23T14:31:00"
+  }
+  ```
+
+### 10.9 에러 코드 (1900~1999)
+
+| 코드 | 이름 | 의미 |
+|---|---|---|
+| 1900 | CHAT_ROOM_NOT_FOUND | 채팅방을 찾을 수 없습니다 |
+| 1901 | CHAT_ROOM_FORBIDDEN | 본인 채팅방만 접근할 수 있습니다 |
+| 1902 | CHAT_MESSAGE_EMPTY | 메시지 내용이 비어있습니다 |
+| 1903 | CHAT_MESSAGE_TOO_LONG | 메시지가 너무 깁니다 (>2000자) |
+| 1904 | CHAT_ADMIN_NOT_FOUND | 채팅 가능한 관리자가 없습니다 |
+| 1905 | CHAT_UNAUTHORIZED_STOMP | STOMP 인증에 실패했습니다 |

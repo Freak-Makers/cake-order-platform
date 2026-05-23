@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { LayoutDashboard, ShoppingBag, Calendar, Cake, FileText, Settings, LogOut, X } from "lucide-vue-next";
+import { LayoutDashboard, ShoppingBag, Calendar, Cake, FileText, MessageSquare, Settings, LogOut, X } from "lucide-vue-next";
 import { cn } from "~/utils/format";
 import { useAuthStore } from "~/stores/auth";
+import { useChatStore } from "~/stores/chat";
 
 withDefaults(defineProps<{ isOpen?: boolean }>(), { isOpen: false });
 const emit = defineEmits<{ close: [] }>();
@@ -13,11 +14,13 @@ const menuItems = [
   { icon: Calendar, label: "예약 가능 슬롯", href: "/admin/reservation-slots" },
   { icon: Cake, label: "상품 관리", href: "/products" },
   { icon: FileText, label: "게시글 관리", href: "/admin/posts" },
+  { icon: MessageSquare, label: "고객 채팅", href: "/admin/chat" },
   { icon: Settings, label: "설정", href: "/settings" },
 ];
 
 const route = useRoute();
 const auth = useAuthStore();
+const chat = useChatStore();
 </script>
 
 <template>
@@ -66,7 +69,13 @@ const auth = useAuthStore();
           @click="emit('close')"
         >
           <component :is="item.icon" :size="20" />
-          {{ item.label }}
+          <span class="flex-1">{{ item.label }}</span>
+          <span
+            v-if="item.href === '/admin/chat' && auth.isLoggedIn && chat.unreadTotal > 0"
+            class="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-pink-500 px-1.5 text-[11px] font-bold text-white"
+          >
+            {{ chat.unreadTotal }}
+          </span>
         </NuxtLink>
       </nav>
 

@@ -195,3 +195,54 @@ export interface CommentsResponse {
   offset: number;
   limit: number;
 }
+
+// Chat Types
+export type SenderType = "CUSTOMER" | "ADMIN";
+
+export interface ChatRoom {
+  id: number;
+  customerId: number;
+  adminId: number;
+  lastMessageAt: string | null;
+  lastMessagePreview: string | null;
+  unreadCount: number;
+  createdAt: string;
+}
+
+export interface AdminChatRoom extends ChatRoom {
+  customerNickname: string;
+  customerProfileImageUrl: string | null;
+}
+
+export interface ChatMessage {
+  id: number;
+  roomId: number;
+  senderId: number;
+  senderType: SenderType;
+  content: string;
+  sentAt: string;
+}
+
+export interface ChatMessagesResponse {
+  items: ChatMessage[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+export interface AdminChatRoomsResponse {
+  items: AdminChatRoom[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+// STOMP push 페이로드 (서버 → 클라이언트)
+export interface ChatPushMessage {
+  roomId: number;
+  messageId: number;
+  senderId: number;
+  senderType: SenderType;
+  content: string;
+  sentAt: string;
+}
