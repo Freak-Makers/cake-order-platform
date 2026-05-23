@@ -53,4 +53,12 @@ enum class ErrorCode(
     // Favorite (1800~1899)
     FAVORITE_NOT_FOUND(1800, "찜 항목을 찾을 수 없습니다"),
     FAVORITE_ALREADY_EXISTS(1801, "이미 찜한 상품입니다"),
+
+    // Chat (1900~1999)
+    CHAT_ROOM_NOT_FOUND(1900, "채팅방을 찾을 수 없습니다"),
+    CHAT_ROOM_FORBIDDEN(1901, "본인 채팅방만 접근할 수 있습니다"),
+    CHAT_MESSAGE_EMPTY(1902, "메시지 내용이 비어있습니다"),
+    CHAT_MESSAGE_TOO_LONG(1903, "메시지가 너무 깁니다"),
+    CHAT_ADMIN_NOT_FOUND(1904, "채팅 가능한 관리자가 없습니다"),
+    CHAT_UNAUTHORIZED_STOMP(1905, "STOMP 인증에 실패했습니다"),
 }
