@@ -21,8 +21,9 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: application.yml 생성 후 secret 값 복붙
-        run:
+      - name: Create application-dev.yml
+        run: |
+          touch ./src/main/resources/application-dev.yml
           echo "${{ secrets.APPLICATION_PROPERTY_DEV }}" > ./src/main/resources/application-dev.yml
 
       - name: Setup Gradle
