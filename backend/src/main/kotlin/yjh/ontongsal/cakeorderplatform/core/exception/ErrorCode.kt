@@ -61,4 +61,8 @@ enum class ErrorCode(
     CHAT_MESSAGE_TOO_LONG(1903, "메시지가 너무 깁니다"),
     CHAT_ADMIN_NOT_FOUND(1904, "채팅 가능한 관리자가 없습니다"),
     CHAT_UNAUTHORIZED_STOMP(1905, "STOMP 인증에 실패했습니다"),
+
+    // Notification (2000~2099)
+    NOTIFICATION_NOT_FOUND(2000, "알림을 찾을 수 없습니다"),
+    NOTIFICATION_FORBIDDEN(2001, "해당 알림에 접근할 수 없습니다"),
 }

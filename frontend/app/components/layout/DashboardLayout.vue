@@ -56,6 +56,7 @@ function hideImage(e: Event) {
             <h2 class="text-sm font-medium text-zinc-500">사장님 환영합니다!</h2>
           </div>
           <div class="flex items-center gap-3 sm:gap-4">
+            <NotificationBell />
             <button
               class="flex items-center gap-2 text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900"
               @click="auth.logout()"

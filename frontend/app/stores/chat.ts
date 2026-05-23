@@ -6,6 +6,7 @@ import type {
   ChatMessage,
   ChatPushMessage,
   ChatRoom,
+  NotificationPushMessage,
 } from "~/api/types";
 import {
   getAdminMessages,
@@ -16,6 +17,7 @@ import {
   markMyRoomRead,
 } from "~/api/chat.api";
 import { useAuthStore } from "~/stores/auth";
+import { useNotificationStore } from "~/stores/notification";
 import { resolveWsUrl } from "~/utils/ws-url";
 import { showToast } from "~/utils/toast";
 
@@ -78,6 +80,17 @@ export const useChatStore = defineStore("chat", () => {
             console.error("[chat] failed to parse message", e);
           }
         });
+        // 관리자에게만 알림 큐도 같이 구독한다. 같은 WebSocket 연결을 공유.
+        if (useAuthStore().role === "ADMIN") {
+          client?.subscribe("/user/queue/notifications", (frame: IMessage) => {
+            try {
+              const payload = JSON.parse(frame.body) as NotificationPushMessage;
+              useNotificationStore().handleIncoming(payload);
+            } catch (e) {
+              console.error("[chat] failed to parse notification", e);
+            }
+          });
+        }
       },
       onStompError: (frame) => {
         console.error("[chat] STOMP error", frame.headers["message"], frame.body);
@@ -105,6 +118,7 @@ export const useChatStore = defineStore("chat", () => {
     adminRooms.value = [];
     messagesByRoom.value = {};
     activeRoomId.value = null;
+    useNotificationStore().reset();
   }
 
   // 송수신 ---------------------------------------------------------------

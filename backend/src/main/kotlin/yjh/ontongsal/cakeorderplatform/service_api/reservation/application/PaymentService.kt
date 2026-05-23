@@ -1,11 +1,14 @@
 package yjh.ontongsal.cakeorderplatform.service_api.reservation.application
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import yjh.ontongsal.cakeorderplatform.core.client.toss.TossPaymentsClient
 import yjh.ontongsal.cakeorderplatform.core.exception.AppException
 import yjh.ontongsal.cakeorderplatform.core.exception.ErrorCode
+import yjh.ontongsal.cakeorderplatform.core.notification.application.NotifyEvent
+import yjh.ontongsal.cakeorderplatform.core.persistence.entity.NotificationType
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.PaymentEntity
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.PaymentStatus
 import yjh.ontongsal.cakeorderplatform.core.persistence.entity.ReservationStatus
@@ -18,6 +21,9 @@ import yjh.ontongsal.cakeorderplatform.service_api.reservation.presentation.Paym
 import yjh.ontongsal.cakeorderplatform.service_api.reservation.presentation.PaymentResponse
 import java.time.LocalDateTime
 
+// AdminLoginService 가 항상 userId=1 로 JWT 를 발급하므로 알림 수신자는 1L 고정.
+private const val ADMIN_USER_ID: Long = 1L
+
 @Service
 class PaymentService(
     private val paymentRepository: PaymentRepository,
@@ -25,6 +31,7 @@ class PaymentService(
     private val productRepository: ProductRepository,
     private val userRepository: UserRepository,
     private val tossPaymentsClient: TossPaymentsClient,
+    private val eventPublisher: ApplicationEventPublisher,
 
     @Value("\${toss.client-key}")
     private val tossClientKey: String,
@@ -116,6 +123,18 @@ class PaymentService(
             )
         )
         reservation.status = ReservationStatus.PAID
+
+        val customerNickname = userRepository.findById(userId).map { it.nickname }.orElse("고객")
+        val productName = productRepository.findById(reservation.productId).map { it.name }.orElse("상품")
+        eventPublisher.publishEvent(
+            NotifyEvent(
+                recipientUserId = ADMIN_USER_ID,
+                type = NotificationType.PAYMENT_COMPLETED,
+                title = "결제 완료",
+                body = "${customerNickname}님이 ${productName} 결제를 완료했습니다. (₩${"%,d".format(amount)})",
+                linkUrl = "/admin/reservations",
+            )
+        )
         return PaymentResponse.from(payment)
     }
 
