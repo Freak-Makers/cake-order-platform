@@ -34,7 +34,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cake-order-platform-backend
-          path: build/libs/cake-order-platform-0.0.1-SNAPSHOT.jar
+          path: backend/build/libs/cake-order-platform-0.0.1-SNAPSHOT.jar
+          if-no-files-found: error
 
   deploy:
     needs: build
