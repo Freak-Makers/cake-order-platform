@@ -51,7 +51,6 @@ class SecurityConfig(
         }
     }
 
-    @Profile("local", "test")
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -88,7 +87,6 @@ class SecurityConfig(
         return http.build()
     }
 
-    @Profile("local", "test")
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
