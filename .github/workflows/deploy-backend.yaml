@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-24.04
+
 
     steps:
       - name: Checkout Repository
@@ -23,42 +24,18 @@ jobs:
         working-directory: ./backend
         run: echo "${{ secrets.APPLICATION_PROPERTY_DEV }}" > ./src/main/resources/application-dev.yml
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4.4.2
-
       - name: Build with Gradle
         working-directory: ./backend
         run: ./gradlew build -x test
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: 빌드된 파일 이름 변경하기
+        run: mv ./backend/build/libs/cake-order-platform-0.0.1-SNAPSHOT.jar ./cake-order-platform-api.jar
+
+      - name: SCP to EC2
+        uses: appleboy/scp-action@v0.1.7
         with:
-          name: cake-order-platform-backend
-          path: backend/build/libs/cake-order-platform-0.0.1-SNAPSHOT.jar
-          if-no-files-found: error
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: cake-order-platform-backend
-          path: build/libs/
-
-
-      - name: Deploy to EC2
-        run: |
-          # EC2 접근을 위한 SSH 개인 키 저장 및 권한 설정
-          echo "${{ secrets.EC2_SSH_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
-
-          # EC2로 JAR 파일 복사
-          scp -i private_key.pem -o StrictHostKeyChecking=no build/libs/cake-order-platform-0.0.1-SNAPSHOT.jar ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/cake-order-platform-SNAPSHOT.jar
-
-          # EC2에서 기존 Java 프로세스 종료 후 새 애플리케이션 실행
-          
-          # 보안상 개인 키 삭제
-          rm -f private_key.pem
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "cake-order-platform-api.jar"
+          target: "/home/ubuntu"
