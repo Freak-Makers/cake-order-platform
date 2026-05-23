@@ -7,6 +7,7 @@ import org.springframework.messaging.MessageDeliveryException
 import org.springframework.messaging.simp.stomp.StompCommand
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor
 import org.springframework.messaging.support.ChannelInterceptor
+import org.springframework.messaging.support.MessageHeaderAccessor
 import org.springframework.stereotype.Component
 import yjh.ontongsal.cakeorderplatform.core.exception.InvalidJwtException
 import yjh.ontongsal.cakeorderplatform.core.security.TestingUserDetails
@@ -26,7 +27,11 @@ class StompAuthChannelInterceptor(
 ) : ChannelInterceptor {
 
     override fun preSend(message: Message<*>, channel: MessageChannel): Message<*> {
-        val accessor = StompHeaderAccessor.wrap(message)
+        // 주의: StompHeaderAccessor.wrap(message) 가 아니라 getAccessor 를 써야 한다.
+        // wrap 은 원본 message 와 분리된 새 accessor 를 만들어 user 세팅이 propagate 되지 않고,
+        // 결과적으로 CONNECT 단계에서 세팅한 principal 이 후속 SEND/SUBSCRIBE 에 유지되지 않는다.
+        val accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor::class.java)
+            ?: return message
 
         when (accessor.command) {
             StompCommand.CONNECT -> authenticate(accessor)
