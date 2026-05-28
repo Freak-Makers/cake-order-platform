@@ -115,13 +115,13 @@ async function handleToggleReviewLike(reviewId: number) {
         <div class="overflow-hidden rounded-2xl bg-zinc-100">
           <img :src="product.imageUrl" :alt="product.name" class="aspect-square w-full object-cover" />
         </div>
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-4 sm:gap-5">
           <span class="inline-flex w-fit rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700">
             {{ product.category }}
           </span>
           <h1 class="text-2xl font-bold text-zinc-900 sm:text-3xl">{{ product.name }}</h1>
           <p class="text-xl font-bold text-pink-600 sm:text-2xl">{{ formatPrice(product.price) }}</p>
-          <p v-if="product.description" class="whitespace-pre-wrap text-sm leading-relaxed text-zinc-600">
+          <p v-if="product.description" class="whitespace-pre-wrap text-sm leading-relaxed text-zinc-600 sm:text-[15px]">
             {{ product.description }}
           </p>
 
@@ -149,13 +149,13 @@ async function handleToggleReviewLike(reviewId: number) {
             <label class="text-sm font-medium text-zinc-700">수량</label>
             <div class="flex items-center rounded-md border border-zinc-200">
               <button
-                class="px-3 py-1 text-zinc-500 hover:text-pink-500"
+                class="px-3.5 py-1.5 text-zinc-500 hover:text-pink-500"
                 @click="quantity = Math.max(1, quantity - 1)"
               >
                 −
               </button>
-              <span class="w-10 text-center text-sm font-medium">{{ quantity }}</span>
-              <button class="px-3 py-1 text-zinc-500 hover:text-pink-500" @click="quantity = quantity + 1">
+              <span class="w-12 text-center text-sm font-medium sm:text-base">{{ quantity }}</span>
+              <button class="px-3.5 py-1.5 text-zinc-500 hover:text-pink-500" @click="quantity = quantity + 1">
                 +
               </button>
             </div>
@@ -178,7 +178,7 @@ async function handleToggleReviewLike(reviewId: number) {
 
         <form
           v-if="auth.isLoggedIn"
-          class="space-y-3 rounded-xl border border-zinc-200 bg-white p-4"
+          class="space-y-3 rounded-xl border border-zinc-200 bg-white p-4 sm:p-5"
           @submit.prevent="handleSubmitReview"
         >
           <div class="flex items-center gap-2">
@@ -197,7 +197,7 @@ async function handleToggleReviewLike(reviewId: number) {
             v-model="reviewContent"
             :rows="3"
             placeholder="후기를 남겨주세요"
-            class="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            class="w-full rounded-md border border-zinc-300 px-3.5 py-2.5 text-sm"
           />
           <div class="flex justify-end">
             <Button type="submit" :disabled="isSubmittingReview || !reviewContent.trim()">
@@ -208,7 +208,7 @@ async function handleToggleReviewLike(reviewId: number) {
 
         <p v-if="reviews.length === 0" class="text-sm text-zinc-400">아직 후기가 없습니다.</p>
         <ul v-else class="space-y-3">
-          <li v-for="r in reviews" :key="r.id" class="rounded-lg border border-zinc-100 bg-white p-4">
+          <li v-for="r in reviews" :key="r.id" class="rounded-lg border border-zinc-100 bg-white p-4 sm:p-5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2 text-xs text-zinc-500">
                 <span class="font-medium text-zinc-700">{{ r.authorName }}</span>
@@ -219,10 +219,10 @@ async function handleToggleReviewLike(reviewId: number) {
                 <Star v-for="i in r.rating" :key="i" :size="14" fill="currentColor" />
               </div>
             </div>
-            <p class="mt-2 whitespace-pre-wrap text-sm text-zinc-700">{{ r.content }}</p>
+            <p class="mt-2.5 whitespace-pre-wrap text-sm text-zinc-700">{{ r.content }}</p>
             <button
               :disabled="!auth.isLoggedIn"
-              class="mt-2 flex items-center gap-1 text-xs text-zinc-400 hover:text-pink-500 disabled:opacity-50"
+              class="mt-3 flex items-center gap-1 text-xs text-zinc-400 hover:text-pink-500 disabled:opacity-50"
               @click="handleToggleReviewLike(r.id)"
             >
               <Heart :size="14" :fill="r.isLiked ? 'currentColor' : 'none'" :class="r.isLiked ? 'text-pink-500' : ''" />

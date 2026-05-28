@@ -74,7 +74,7 @@ async function handleCancel(id: number) {
           <Card>
             <CardContent class="p-4 sm:p-6">
               <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-                <div class="min-w-0 flex-1 space-y-1">
+                <div class="min-w-0 flex-1 space-y-1.5">
                   <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span class="text-xs font-medium text-zinc-400">{{ r.reservationNumber }}</span>
                     <span

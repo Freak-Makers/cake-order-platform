@@ -76,7 +76,7 @@ async function handlePay() {
     <div class="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 class="text-xl font-bold text-zinc-900 sm:text-2xl">결제하기</h1>
-        <p class="mt-1 text-sm text-zinc-500">
+        <p class="mt-1.5 text-sm text-zinc-500">
           토스페이먼츠 결제위젯에서 결제수단을 선택하고 결제를 진행하세요.
         </p>
       </div>
@@ -96,7 +96,7 @@ async function handlePay() {
       <div v-if="prepare" class="rounded-xl border border-zinc-200 bg-white p-4 sm:p-6">
         <p class="text-sm text-zinc-500">{{ prepare.orderName }}</p>
         <p class="mt-2 text-2xl font-bold text-zinc-900 sm:text-3xl">{{ formatPrice(prepare.amount) }}</p>
-        <div class="mt-4 space-y-1 text-xs text-zinc-400">
+        <div class="mt-4 space-y-1.5 text-xs text-zinc-400">
           <p>주문번호: <span class="font-mono">{{ prepare.orderId }}</span></p>
           <p>고객: {{ prepare.customerName }}</p>
         </div>
