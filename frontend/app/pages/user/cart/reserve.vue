@@ -123,7 +123,7 @@ async function handleSubmit() {
     <div v-else class="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 class="text-xl font-bold text-zinc-900 sm:text-2xl">예약 작성</h1>
-        <p class="mt-1 text-sm text-zinc-500">
+        <p class="mt-1.5 text-sm text-zinc-500">
           장바구니의 각 상품에 픽업 슬롯을 선택해주세요. 한 슬롯은 한 예약에만 배정됩니다.
         </p>
       </div>
@@ -148,20 +148,20 @@ async function handleSubmit() {
             </div>
             <div class="flex-1">
               <h2 class="font-bold text-zinc-900">{{ item.name }}</h2>
-              <p class="mt-1 text-sm text-zinc-500">
+              <p class="mt-1.5 text-sm text-zinc-500">
                 {{ item.quantity }}개 · {{ (item.price * item.quantity).toLocaleString() }}원
               </p>
             </div>
           </div>
 
           <div>
-            <label class="mb-1 block text-sm font-medium text-zinc-700">
+            <label class="mb-1.5 block text-sm font-medium text-zinc-700">
               픽업 슬롯 <span class="text-red-500">*</span>
             </label>
             <select
               :value="forms[item.id]?.slotId ?? ''"
               :disabled="!slotsLoaded || isSubmitting"
-              class="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              class="w-full rounded-md border border-zinc-300 px-3 py-2.5 text-sm"
               @change="onSlotChange(item.id, $event)"
             >
               <option value="">{{ slotsLoaded ? "슬롯 선택..." : "불러오는 중..." }}</option>
@@ -178,13 +178,13 @@ async function handleSubmit() {
           </div>
 
           <div>
-            <label class="mb-1 block text-sm font-medium text-zinc-700">요구사항 (선택)</label>
+            <label class="mb-1.5 block text-sm font-medium text-zinc-700">요구사항 (선택)</label>
             <textarea
               :value="forms[item.id]?.requirements ?? ''"
               :disabled="isSubmitting"
               placeholder="알러지, 메시지 등"
               :rows="2"
-              class="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              class="w-full rounded-md border border-zinc-300 px-3 py-2.5 text-sm"
               @input="updateForm(item.id, { requirements: ($event.target as HTMLTextAreaElement).value })"
             />
           </div>

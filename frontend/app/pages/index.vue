@@ -81,7 +81,7 @@ const features = [
       <section id="features" class="scroll-mt-24 bg-zinc-50 px-5 py-16 sm:px-6 sm:py-24">
         <div class="mx-auto max-w-7xl">
           <div class="grid gap-10 md:grid-cols-3 md:gap-12">
-            <div v-for="(feature, i) in features" :key="i" class="flex flex-col gap-3 sm:gap-4">
+            <div v-for="(feature, i) in features" :key="i" class="flex flex-col gap-4 sm:gap-5">
               <div class="flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 text-pink-600">
                 <CheckCircle2 :size="24" />
               </div>

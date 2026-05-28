@@ -288,12 +288,12 @@ function openDetail() {
     </div>
 
     <!-- 초기 로딩 스켈레톤 -->
-    <div v-if="isInitialLoading" class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div v-if="isInitialLoading" class="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-y-14 xl:grid-cols-4">
       <div v-for="i in 8" :key="i" class="animate-pulse">
-        <div class="mb-3 aspect-[3/4] rounded-xl bg-stone-100" />
+        <div class="mb-4 aspect-[3/4] rounded-xl bg-stone-100" />
         <div class="h-3 w-16 rounded bg-stone-100" />
-        <div class="mt-2 h-4 w-3/4 rounded bg-stone-100" />
-        <div class="mt-2 h-4 w-1/3 rounded bg-stone-100" />
+        <div class="mt-2.5 h-4 w-3/4 rounded bg-stone-100" />
+        <div class="mt-3.5 h-4 w-1/3 rounded bg-stone-100" />
       </div>
     </div>
 
@@ -365,7 +365,7 @@ function openDetail() {
       </article>
 
       <!-- Section eyebrow -->
-      <div v-if="products.length > 1" class="mb-8 flex items-center gap-4">
+      <div v-if="products.length > 1" class="mb-10 flex items-center gap-4">
         <span class="h-px flex-1 bg-stone-200" />
         <span class="text-[10px] font-medium uppercase tracking-[0.3em] text-stone-400">
           This Week's Selection
@@ -374,14 +374,14 @@ function openDetail() {
       </div>
 
       <!-- Grid — 나머지 상품 -->
-      <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div class="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-y-14 xl:grid-cols-4">
         <article
           v-for="(product, i) in products.slice(1)"
           :key="product.id"
           class="group cursor-pointer"
           @click="openProduct(product)"
         >
-          <div class="relative mb-3 aspect-[3/4] overflow-hidden rounded-xl bg-stone-100">
+          <div class="relative mb-4 aspect-[3/4] overflow-hidden rounded-xl bg-stone-100">
             <img
               :src="product.imageUrl"
               :alt="product.name"
@@ -416,7 +416,7 @@ function openDetail() {
             </div>
           </div>
 
-          <div class="px-0.5">
+          <div class="px-1">
             <div class="flex items-center justify-between">
               <span class="text-[10px] font-medium uppercase tracking-[0.2em] text-stone-400">
                 {{ product.category }}
@@ -427,14 +427,14 @@ function openDetail() {
                 <span class="text-stone-400">(128)</span>
               </div>
             </div>
-            <h3 class="mt-1.5 line-clamp-1 text-sm font-medium leading-snug text-stone-900 transition-colors group-hover:text-rose-500">
+            <h3 class="mt-2.5 line-clamp-1 text-sm font-medium leading-snug text-stone-900 transition-colors group-hover:text-rose-500 sm:text-base">
               {{ product.name }}
             </h3>
-            <p v-if="product.description" class="mt-1 line-clamp-1 text-[11px] leading-relaxed text-stone-400">
+            <p v-if="product.description" class="mt-1.5 line-clamp-1 text-[11px] leading-relaxed text-stone-400 sm:text-xs">
               {{ product.description }}
             </p>
-            <div class="mt-2.5 flex items-end justify-between border-t border-stone-100 pt-2">
-              <p class="text-sm font-medium tracking-tight text-stone-900">
+            <div class="mt-3.5 flex items-end justify-between border-t border-stone-100 pt-3">
+              <p class="text-sm font-medium tracking-tight text-stone-900 sm:text-base">
                 {{ product.price.toLocaleString() }}
                 <span class="ml-1 text-[10px] font-normal text-stone-400">KRW</span>
               </p>
@@ -448,10 +448,10 @@ function openDetail() {
         <!-- 추가 로딩 스켈레톤 -->
         <template v-if="isFetchingMore">
           <div v-for="i in 4" :key="`skeleton-${i}`" class="animate-pulse">
-            <div class="mb-3 aspect-[3/4] rounded-xl bg-stone-100" />
+            <div class="mb-4 aspect-[3/4] rounded-xl bg-stone-100" />
             <div class="h-3 w-16 rounded bg-stone-100" />
-            <div class="mt-2 h-4 w-3/4 rounded bg-stone-100" />
-            <div class="mt-2 h-4 w-1/3 rounded bg-stone-100" />
+            <div class="mt-2.5 h-4 w-3/4 rounded bg-stone-100" />
+            <div class="mt-3.5 h-4 w-1/3 rounded bg-stone-100" />
           </div>
         </template>
       </div>

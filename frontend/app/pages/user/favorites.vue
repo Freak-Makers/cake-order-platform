@@ -39,7 +39,7 @@ async function handleRemove(productId: number) {
           <Bookmark :size="24" class="text-amber-500" fill="currentColor" />
           내 찜 목록
         </h1>
-        <p class="mt-1 text-sm text-zinc-500">
+        <p class="mt-1.5 text-sm text-zinc-500">
           관심 있는 케이크를 모아두는 공간입니다. 예약은 상품 상세에서 진행하세요.
         </p>
       </div>
@@ -57,7 +57,7 @@ async function handleRemove(productId: number) {
         </NuxtLink>
       </div>
 
-      <ul v-else class="grid gap-4 sm:grid-cols-2">
+      <ul v-else class="grid gap-4 sm:gap-5 sm:grid-cols-2">
         <li v-for="f in favorites" :key="f.id" class="overflow-hidden rounded-xl border border-zinc-200 bg-white">
           <NuxtLink :to="`/user/products/${f.productId}`" class="block">
             <div class="aspect-[4/3] overflow-hidden bg-zinc-100">
@@ -68,7 +68,7 @@ async function handleRemove(productId: number) {
               />
             </div>
           </NuxtLink>
-          <div class="space-y-2 p-4">
+          <div class="space-y-2.5 p-4 sm:p-5">
             <div class="flex items-start justify-between gap-2">
               <NuxtLink :to="`/user/products/${f.productId}`" class="font-bold text-zinc-900 hover:text-pink-600">
                 {{ f.productName }}
@@ -81,7 +81,7 @@ async function handleRemove(productId: number) {
                 <Trash2 :size="16" />
               </button>
             </div>
-            <p class="text-sm font-bold text-pink-600">{{ formatPrice(f.productPrice) }}</p>
+            <p class="text-sm font-bold text-pink-600 sm:text-base">{{ formatPrice(f.productPrice) }}</p>
             <span
               v-if="f.productStatus !== 'AVAILABLE'"
               class="inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600"
